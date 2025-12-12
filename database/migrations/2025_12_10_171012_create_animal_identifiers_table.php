@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,9 +13,10 @@ return new class extends Migration
         Schema::create('animal_identifiers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->enum('type', ['VISUAL','BRAND', 'TATTOO', 'RFID_EAR_TAG', 'RFID_INJECTABLE', 'RFID_BOLUS']);
+            $table->enum('type', ['VISUAL', 'BRAND', 'TATTOO', 'RFID_EAR_TAG', 'RFID_INJECTABLE', 'RFID_BOLUS']);
             $table->string('code');
             $table->boolean('active')->default(true);
+            $table->unique(['animal_id', 'type',]);
             $table->timestamps();
         });
     }

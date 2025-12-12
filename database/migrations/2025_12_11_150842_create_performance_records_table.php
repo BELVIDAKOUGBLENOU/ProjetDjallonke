@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('performance_records', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
+            $table->foreignId('created_by')->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete()->cascadeOnUpdate();
             $table->date('recorded_date');
             $table->string('context');

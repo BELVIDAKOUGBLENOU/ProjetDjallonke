@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignId('father_id')->nullable()->constrained('animals')->restrictOnDelete()->cascadeOnUpdate();
             $table->integer('nb_alive');
             $table->integer('nb_dead');
+            $table->unique('event_id');
+      
         });
     }
 
