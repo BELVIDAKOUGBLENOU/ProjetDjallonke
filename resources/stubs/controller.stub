@@ -1,0 +1,112 @@
+<?php
+
+namespace {{controllerNamespace}};
+
+use {{modelNamespace}}\{{modelName}};
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use {{requestNamespace}}\{{modelName}}Request;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
+
+class {{modelName}}Controller extends Controller
+{
+
+    /* public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth');
+
+        // Middleware pour permissions CRUD
+        $table =  {{modelName}}::getTableName();
+        $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
+    }*/
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request): View
+    {
+        $q = $request->string('q')->toString();
+        ${{modelNamePluralLowerCase}} = {{modelName}}::query()
+            ->search($q)
+            ->orderByDesc('created_at')
+            ->paginate()
+            ->appends(['q' => $q]);
+
+        return view('{{modelView}}.index', compact('{{modelNamePluralLowerCase}}', 'q'))
+            ->with('i', ($request->input('page', 1) - 1) * ${{modelNamePluralLowerCase}}->perPage());
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): View
+    {
+        ${{modelNameLowerCase}} = new {{modelName}}();
+
+        return view('{{modelView}}.create', compact('{{modelNameLowerCase}}'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store({{modelName}}Request $request): RedirectResponse
+    {
+        $all = $request->validated();
+        {{modelName}}::create($all);
+
+        return Redirect::route('{{modelRoute}}.index')
+            ->with('success', '{{modelName}} créé avec succès !.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($id): View
+    {
+        ${{modelNameLowerCase}} = {{modelName}}::findOrFail($id);
+
+        return view('{{modelView}}.show', compact('{{modelNameLowerCase}}'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id): View
+    {
+        ${{modelNameLowerCase}} = {{modelName}}::findOrFail($id);
+
+        return view('{{modelView}}.edit', compact('{{modelNameLowerCase}}'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update({{modelName}}Request $request, {{modelName}} ${{modelNameLowerCase}}): RedirectResponse
+    {
+         $all = $request->validated();
+        ${{modelNameLowerCase}}->update($all);
+
+        return Redirect::route('{{modelRoute}}.index')
+            ->with('success', '{{modelName}} mise à jour avec succès !');
+    }
+
+    public function destroy($id): RedirectResponse
+    {
+       try {
+            $data =  {{modelName}}::findOrFail($id);
+            $data->delete();
+
+             return Redirect::route('{{modelRoute}}.index')
+            ->with('success', '{{modelName}} supprimé avec succès !');
+        } catch (\Throwable $th) {
+            return Redirect::back()
+                ->with('error', "Impossible de supprimer cette donnée car elle est liée à d'autres enregistrements.");
+        }
+
+    }
+}

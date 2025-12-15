@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('nb_alive');
             $table->integer('nb_dead');
             $table->unique('event_id');
-      
+
         });
     }
 

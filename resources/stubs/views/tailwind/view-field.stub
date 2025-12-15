@@ -1,0 +1,4 @@
+                <div class="py-3 sm:grid sm:grid-cols-4 sm:gap-4">
+                    <dt class="text-xs font-semibold tracking-wide opacity-80 uppercase col-span-1">{{title}}</dt>
+                    <dd class="mt-1 sm:mt-0 col-span-3 text-sm ">{{ ${{modelNameLowerCase}}->{{column}} }}</dd>
+                </div>
