@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::create('weight_records', function (Blueprint $table) {
             $table->id();
+            $table->string('uid')->unique();
+
             $table->foreignId('event_id')->constrained('events')->cascadeOnDelete()->cascadeOnUpdate();
             $table->float('weight');
             $table->integer('age_days');

@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::create('performance_records', function (Blueprint $table) {
             $table->id();
+            $table->string('uid')->unique();
+
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete()->cascadeOnUpdate();
             $table->date('recorded_date');

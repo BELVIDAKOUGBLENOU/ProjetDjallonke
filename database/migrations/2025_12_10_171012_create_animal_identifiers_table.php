@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::create('animal_identifiers', function (Blueprint $table) {
             $table->id();
+            $table->string('uid')->unique();
+
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete()->cascadeOnUpdate();
             $table->enum('type', ['VISUAL', 'BRAND', 'TATTOO', 'RFID_EAR_TAG', 'RFID_INJECTABLE', 'RFID_BOLUS']);
             $table->string('code');
