@@ -6,6 +6,7 @@ use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\CommunityMembership;
+use App\Http\Middleware\SetCommunityContext;
 
 class CommunityMembershipController extends Controller
 {
@@ -13,6 +14,8 @@ class CommunityMembershipController extends Controller
     {
         // Middleware pour authentification
         $this->middleware('auth');
+        $this->middleware(SetCommunityContext::class);
+
 
         // Middleware pour permissions CRUD
         $table = Community::getTableName();
