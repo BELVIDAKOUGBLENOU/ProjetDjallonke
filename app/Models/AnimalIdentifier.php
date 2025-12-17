@@ -12,6 +12,10 @@ class AnimalIdentifier extends Model
 
     protected $fillable = ['uid', 'animal_id', 'type', 'code', 'active'];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function animal()
     {
         return $this->belongsTo(Animal::class);

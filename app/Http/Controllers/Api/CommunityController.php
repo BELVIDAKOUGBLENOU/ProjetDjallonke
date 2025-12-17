@@ -2,45 +2,71 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Community;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CommunityRequest;
 use App\Http\Resources\CommunityResource;
-use App\Models\Community;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class CommunityController extends Controller implements HasMiddleware
+class CommunityController extends Controller
 {
-    public static function middleware(): array
+    // public static function middleware(): array
+    // {
+
+    //     return [
+    //         'auth:sanctum',
+    //         new Middleware("permission:list $table", only: ['index', 'getAllData']),
+    //         new Middleware("permission:view $table", only: ['show']),
+    //         new Middleware("permission:create $table", only: ['create', 'store']),
+    //         new Middleware("permission:update $table", only: ['edit', 'update']),
+    //         new Middleware("permission:delete $table", only: ['destroy']),
+    //     ];
+    // }
+    public function __construct()
     {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+        $this->middleware(function ($request, $next) {
+
+            $communityId = $request->route('api_community');
+
+            if ($communityId) {
+                setPermissionsTeamId($communityId);
+            }
+
+
+            return $next($request);
+        });
+
+
+        // Middleware pour permissions CRUD
         $table = Community::getTableName();
-
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
     }
 
-    public function getAllData(Request $request): JsonResponse
-    {
-        $communities = Community::all();
-
-        return response()->json(CommunityResource::collection($communities));
-    }
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $communities = Community::paginate();
+        $communities = Community::
+            where(function ($query) {
+                $query->whereHas('members', function ($query) {
+                    $query->where('users.id', auth()->id());
+                });
+            })
+            ->paginate();
 
         return CommunityResource::collection($communities);
     }
@@ -58,8 +84,11 @@ class CommunityController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Community $community): JsonResponse
+    public function show(string $communityId): JsonResponse
     {
+        $community = Community::findOrFail($communityId);
+        $community->load(['country', 'creator']);
+        // dd($community->toArray());
         return response()->json(new CommunityResource($community));
     }
 

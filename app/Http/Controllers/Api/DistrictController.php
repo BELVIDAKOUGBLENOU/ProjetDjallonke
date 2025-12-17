@@ -2,38 +2,45 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\District;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DistrictRequest;
 use App\Http\Resources\DistrictResource;
-use App\Models\District;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class DistrictController extends Controller implements HasMiddleware
+class DistrictController extends Controller
 {
-    public static function middleware(): array
+    public function __construct()
     {
-        $table = District::getTableName();
+        // Middleware pour authentification
+        $this->middleware('auth');
+        $this->middleware(SetCommunityContextAPI::class);
 
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
+        // Middleware pour permissions CRUD
+        $table = District::getTableName();
+        $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
     }
 
     public function getAllData(Request $request): JsonResponse
     {
-        $districts = District::query();
+        $country = $request->country_id ?? null;
+        $districts = District::query()
+            ->when($country, function ($query, $country) {
+                $query->where('country_id', $country);
+            });
+
         $imbriqued = $request->boolean('imbriqued');
         if ($imbriqued) {
-            $districts->with('subDistricts');
+            $districts->with('subDistricts.villages');
         }
         $districts = $districts->get();
 
@@ -57,7 +64,7 @@ class DistrictController extends Controller implements HasMiddleware
             });
 
         if ($imbriqued) {
-            $districts->with('subDistricts');
+            $districts->with('subDistricts.villages');
         }
 
         $districts = $districts->paginate();

@@ -2,39 +2,49 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Animal;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AnimalRequest;
 use App\Http\Resources\AnimalResource;
-use App\Models\Animal;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class AnimalController extends Controller implements HasMiddleware
+class AnimalController extends Controller
+    // implements HasMiddleware
 {
-    public static function middleware(): array
+    public function __construct()
     {
-        $table = Animal::getTableName();
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+        $this->middleware(function ($request, $next) {
+            $animalId = $request->route('api_animal');
+            if ($animalId) {
+                $animal = ($animalId instanceof Animal) ? $animalId : Animal::findOrFail($animalId);
+                setPermissionsTeamId($animal->community_id);
+            }
+            return $next($request);
+        });
 
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
+
+        // Middleware pour permissions CRUD
+        $table = Animal::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
     }
 
     public function getAllData(Request $request): JsonResponse
     {
-        $request->validate([
-            'community_id' => 'required|exists:communities,id',
-        ]);
+        $communityId = getPermissionsTeamId();
         $animals = Animal::query()
-            ->where('community_id', $request->community_id)
+            ->where('community_id', $communityId)
             ->get();
 
         return response()->json(AnimalResource::collection($animals));
@@ -45,7 +55,11 @@ class AnimalController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $animals = Animal::paginate();
+        $communityId = getPermissionsTeamId();
+
+        $animals = Animal::
+            where('community_id', $communityId)->
+            paginate();
 
         return AnimalResource::collection($animals);
     }

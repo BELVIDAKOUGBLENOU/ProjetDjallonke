@@ -12,21 +12,8 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
-class PerformanceRecordController extends Controller implements HasMiddleware
+class PerformanceRecordController extends Controller
 {
-    public static function middleware(): array
-    {
-        $table = PerformanceRecord::getTableName();
-
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
-    }
 
     public function getAllData(Request $request): JsonResponse
     {

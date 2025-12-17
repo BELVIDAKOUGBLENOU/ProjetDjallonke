@@ -19,7 +19,22 @@ class Animal extends Model
         'birth_date',
         'life_status',
     ];
+    public function scopeSearch($query, ?string $term)
+    {
+        $term = trim((string) $term);
+        if ($term === '') {
+            return $query;
+        }
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
 
+        return $query->where(function ($q) use ($like) {
+            $q->where('uid', 'like', $like)
+                ->orWhere('birth_date', 'like', $like)
+                ->orWhereHas('identifiers', function ($query) use ($like) {
+                    $query->where('code', 'like', $like);
+                });
+        });
+    }
     public static function getTableName()
     {
         return (new self)->getTable();

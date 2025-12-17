@@ -26,7 +26,7 @@ class Country extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = ['name', 'code_iso'];
+    protected $fillable = ['name', 'code_iso', 'emoji', 'is_active'];
 
     /**
      * Scope a query to filter by a generic search term across string columns.
@@ -75,4 +75,6 @@ class Country extends Model
     {
         return $this->hasMany(\App\Models\District::class, 'country_id', 'id');
     }
+
+
 }

@@ -2,42 +2,60 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Person;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PersonRequest;
 use App\Http\Resources\PersonResource;
-use App\Models\Person;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class PersonController extends Controller implements HasMiddleware
+class PersonController extends Controller
 {
-    public static function middleware(): array
-    {
-        $table = Person::getTableName();
 
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
+    public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+        $this->middleware(function ($request, $next) {
+
+            $communityId = $request->input('community') ?? $request->input('community_id');
+
+            if ($communityId) {
+                setPermissionsTeamId($communityId);
+            }
+            return $next($request);
+        });
+
+
+        // Middleware pour permissions CRUD
+        $table = Person::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
     }
 
     public function getAllData(Request $request): JsonResponse
     {
-        $comminityId = $request->validate([
-            'community_id' => 'required|exists:communities,id',
-        ])['community_id'] ?? null;
+        $communityId = getPermissionsTeamId();
+
         $persons = Person::query()
-            ->when($comminityId, function ($query, $comminityId) {
-                $query->where('community_id', $comminityId);
-            })->get()
-        ;
+            ->when($communityId, function ($query) use ($communityId) {
+                $query->whereHas('personRoles', function ($q) use ($communityId) {
+                    $q->whereHas('animal', function ($q) use ($communityId) {
+                        $q->whereHas('premise', function ($q) use ($communityId) {
+                            $q->where('community_id', $communityId);
+                        });
+                    });
+                });
+            })
+            ->get();
 
         return response()->json(PersonResource::collection($persons));
     }
@@ -47,10 +65,19 @@ class PersonController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $comminityId = $request->validate([
-            'community_id' => 'required|exists:communities,id',
-        ])['community_id'] ?? null;
-        $persons = Person::where('community_id', $comminityId)->paginate();
+        $communityId = getPermissionsTeamId();
+
+        $persons = Person::query()
+            ->when($communityId, function ($query) use ($communityId) {
+                $query->whereHas('personRoles', function ($q) use ($communityId) {
+                    $q->whereHas('animal', function ($q) use ($communityId) {
+                        $q->whereHas('premise', function ($q) use ($communityId) {
+                            $q->where('community_id', $communityId);
+                        });
+                    });
+                });
+            })
+            ->paginate();
 
         return PersonResource::collection($persons);
     }

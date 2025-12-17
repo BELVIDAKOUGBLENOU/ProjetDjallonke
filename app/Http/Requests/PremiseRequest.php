@@ -24,8 +24,6 @@ class PremiseRequest extends FormRequest
     {
         return [
             'village_id' => 'required|exists:villages,id',
-            'created_by' => 'required|exists:users,id',
-            'community_id' => 'nullable|exists:communities,id',
             'code' => [
                 'required',
                 'string',

@@ -23,8 +23,6 @@ class CommunityRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'creation_date' => 'required|date',
-            'created_by' => 'required|exists:users,id',
             'country_id' => 'required|exists:countries,id',
         ];
     }

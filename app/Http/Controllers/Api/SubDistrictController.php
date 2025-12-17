@@ -2,30 +2,32 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\SubDistrict;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SubDistrictRequest;
 use App\Http\Resources\SubDistrictResource;
-use App\Models\SubDistrict;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class SubDistrictController extends Controller implements HasMiddleware
+class SubDistrictController extends Controller
 {
-    public static function middleware(): array
+    public function __construct()
     {
-        $table = SubDistrict::getTableName();
+        // Middleware pour authentification
+        $this->middleware('auth');
+        $this->middleware(SetCommunityContextAPI::class);
 
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
+        // Middleware pour permissions CRUD
+        $table = SubDistrict::getTableName();
+        $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
     }
 
     public function getAllData(Request $request): JsonResponse

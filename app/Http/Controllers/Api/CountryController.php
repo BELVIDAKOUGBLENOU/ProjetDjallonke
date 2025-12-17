@@ -2,43 +2,59 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Country;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CountryRequest;
 use App\Http\Resources\CountryResource;
-use App\Models\Country;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Http\Middleware\SetCommunityContext;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class CountryController extends Controller implements HasMiddleware
+class CountryController extends Controller
 {
-    public static function middleware(): array
-    {
-        $table = Country::getTableName();
+    // public static function middleware(): array
+    // {
+    //     $table = Country::getTableName();
 
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
+    //     return [
+    //         'auth:sanctum',
+    //         new Middleware("permission:list $table", only: ['index', 'getAllData']),
+    //         new Middleware("permission:view $table", only: ['show']),
+    //         new Middleware("permission:create $table", only: ['create', 'store']),
+    //         new Middleware("permission:update $table", only: ['edit', 'update']),
+    //         new Middleware("permission:delete $table", only: ['destroy']),
+    //     ];
+    // }
+    public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth');
+        $this->middleware(SetCommunityContextAPI::class);
+
+        // Middleware pour permissions CRUD
+        $table = Country::getTableName();
+        $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
     }
 
     public function getAllData(Request $request): JsonResponse
     {
-        $countries = Country::query();
+        $countries = Country::where("is_active", true);
         $imbriqued = $request->boolean('imbriqued');
         if ($imbriqued) {
-            $countries = $countries->with('districts');
+            $countries = $countries->with('districts.subDistricts.villages');
         }
         $countries = $countries->get();
 
         $resource = CountryResource::collection($countries);
-        $resource->each(fn ($r) => $r->setImbriqued($imbriqued));
+        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
 
         return response()->json($resource);
     }
@@ -48,15 +64,15 @@ class CountryController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $countries = Country::query();
+        $countries = Country::where("is_active", true);
         $imbriqued = $request->boolean('imbriqued');
         if ($imbriqued) {
-            $countries = $countries->with('districts');
+            $countries = $countries->with('districts.subDistricts.villages');
         }
         $countries = $countries->paginate();
 
         $resource = CountryResource::collection($countries);
-        $resource->each(fn ($r) => $r->setImbriqued($imbriqued));
+        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
 
         return $resource;
     }

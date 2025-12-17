@@ -18,6 +18,30 @@ class Person extends Model
     {
         return (new self)->getTable();
     }
+    public function scopeSearch($query, ?string $term)
+    {
+        $term = trim((string) $term);
+        if ($term === '') {
+            return $query;
+        }
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        // Adjust searchable columns after generation if necessary
+        $columns = array_filter([
+            'name',
+            'address',
+            'phone',
+            'nationalId'
+        ]);
+        if (empty($columns)) {
+            return $query; // No columns defined; user will customize.
+        }
+        return $query->where(function ($q) use ($columns, $like) {
+            foreach ($columns as $idx => $col) {
+                $method = $idx === 0 ? 'where' : 'orWhere';
+                $q->$method($col, 'like', $like);
+            }
+        });
+    }
 
     public function premisesKeepers()
     {

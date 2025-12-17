@@ -2,35 +2,47 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Premise;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PremiseRequest;
 use App\Http\Resources\PremiseResource;
-use App\Models\Premise;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class PremiseController extends Controller implements HasMiddleware
+class PremiseController extends Controller
 {
-    public static function middleware(): array
+
+    public function __construct()
     {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+        $this->middleware(function ($request, $next) {
+            $premisesId = $request->route('api_premise');
+            $premise = ($premisesId instanceof Premise) ? $premisesId : Premise::findOrFail($premisesId);
+
+            if ($premise) {
+                setPermissionsTeamId($premise->community_id);
+            }
+            return $next($request);
+        });
+
+
+        // Middleware pour permissions CRUD
         $table = Premise::getTableName();
-
-        return [
-            'auth:sanctum',
-            new Middleware("permission:list $table", only: ['index', 'getAllData']),
-            new Middleware("permission:view $table", only: ['show']),
-            new Middleware("permission:create $table", only: ['create', 'store']),
-            new Middleware("permission:update $table", only: ['edit', 'update']),
-            new Middleware("permission:delete $table", only: ['destroy']),
-        ];
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
     }
-
     public function getAllData(Request $request): JsonResponse
     {
-        $premises = Premise::all();
+        $premises = Premise::where('community_id', getPermissionsTeamId())->get();
 
         return response()->json(PremiseResource::collection($premises));
     }
@@ -40,7 +52,9 @@ class PremiseController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $premises = Premise::paginate();
+        $premises = Premise::
+            where("community_id", getPermissionsTeamId())->
+            paginate();
 
         return PremiseResource::collection($premises);
     }
@@ -50,7 +64,10 @@ class PremiseController extends Controller implements HasMiddleware
      */
     public function store(PremiseRequest $request): JsonResponse
     {
-        $premise = Premise::create($request->validated());
+        $all = $request->validated();
+        $all['community_id'] = getPermissionsTeamId();
+        $all['created_by'] = auth()->id();
+        $premise = Premise::create($all);
 
         return response()->json(new PremiseResource($premise));
     }

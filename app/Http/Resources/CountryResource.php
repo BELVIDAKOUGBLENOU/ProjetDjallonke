@@ -26,12 +26,13 @@ class CountryResource extends JsonResource
         $data = parent::toArray($request);
         if ($this->imbriqued) {
             $districts = $this->whenLoaded('districts');
-            if (! $districts instanceof \Illuminate\Http\Resources\MissingValue) {
+            if (!$districts instanceof \Illuminate\Http\Resources\MissingValue) {
                 $districtsResource = DistrictResource::collection($districts);
-                $districtsResource->each(fn ($r) => $r->setImbriqued($this->imbriqued));
+                $districtsResource->each(fn($r) => $r->setImbriqued($this->imbriqued));
                 $data['districts'] = $districtsResource;
             }
         }
+        unset($data['created_at'], $data['updated_at'], $data['is_active']);
 
         return $data;
     }

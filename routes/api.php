@@ -29,42 +29,48 @@ Route::middleware('auth:sanctum')->group(function () {
 //FINI , ADMINISTRATION GLOBALE
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::apiResource('countries', CountryController::class);
+    Route::apiResource('api-countries', CountryController::class)->only(['index', 'show']);
     Route::get('get-all-countries', [CountryController::class, 'getAllData']);
 
-    Route::apiResource('districts', DistrictController::class);
+    Route::apiResource('api-districts', DistrictController::class)->only(['index', 'show']);
     Route::get('get-all-districts', [DistrictController::class, 'getAllData']);
 
-    Route::apiResource('sub-districts', SubDistrictController::class);
+    Route::apiResource('api-sub-districts', SubDistrictController::class)->only(['index', 'show']);
     Route::get('get-all-sub-districts', [SubDistrictController::class, 'getAllData']);
 
-    Route::apiResource('villages', VillageController::class);
+    Route::apiResource('api-villages', VillageController::class)->only(['index', 'show']);
     Route::get('get-all-villages', [VillageController::class, 'getAllData']);
-    Route::apiResource('communities', CommunityController::class);
-    Route::get('get-all-communities', [CommunityController::class, 'getAllData']);
+    Route::apiResource('api-communities', CommunityController::class)->only(['index', 'show']);
+    // Route::get('get-all-communities', [CommunityController::class, 'getAllData']);
 
 });
-//MEMBRE DE COMMUNAUTE
-// rest a faire
+
 Route::middleware(['auth:sanctum', AccessDonneesCommunautaire::class])->group(function () {
 
-    Route::apiResource('persons', PersonController::class);
+
+    Route::apiResource('api-persons', PersonController::class)->only(['index',]);
+
     Route::get('get-all-persons', [PersonController::class, 'getAllData']);
-    Route::apiResource('animals', AnimalController::class);
+
+
     Route::get('get-all-animals', [AnimalController::class, 'getAllData']);
 
+    Route::apiResource('api-premises', PremiseController::class)->only(['index', 'show', 'store']);
+    Route::get('get-all-premises', [PremiseController::class, 'getAllData']);
+    // RESTE A FAIR
+    Route::apiResource('api-animals', AnimalController::class);
+    // add identifier
+// remove identifier
+//edit identifier
 });
+// reste a faire
 Route::middleware('auth:sanctum')->group(function () {
 
 
-
-    Route::apiResource('premises', PremiseController::class);
-    Route::get('get-all-premises', [PremiseController::class, 'getAllData']);
-
-    Route::apiResource('performance-records', PerformanceRecordController::class);
+    Route::apiResource('api-performance-records', PerformanceRecordController::class);
     Route::get('get-all-performance-records', [PerformanceRecordController::class, 'getAllData']);
 
-    Route::apiResource('weight-records', WeightRecordController::class);
+    Route::apiResource('api-weight-records', WeightRecordController::class);
     Route::get('get-all-weight-records', [WeightRecordController::class, 'getAllData']);
 
 });

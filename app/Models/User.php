@@ -25,6 +25,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'person_id',
+        'fcm_token'
     ];
 
     /**
@@ -50,6 +52,27 @@ class User extends Authenticatable
         ];
     }
 
+    public function scopeSearch($query, ?string $term)
+    {
+        $term = trim((string) $term);
+        if ($term === '') {
+            return $query;
+        }
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        // Adjust searchable columns after generation if necessary
+        $columns = array_filter([
+            // Example: 'name', 'title', 'slug'
+        ]);
+        if (empty($columns)) {
+            return $query; // No columns defined; user will customize.
+        }
+        return $query->where(function ($q) use ($columns, $like) {
+            foreach ($columns as $idx => $col) {
+                $method = $idx === 0 ? 'where' : 'orWhere';
+                $q->$method($col, 'like', $like);
+            }
+        });
+    }
     public function createdCommunities()
     {
         return $this->hasMany(Community::class, 'created_by');

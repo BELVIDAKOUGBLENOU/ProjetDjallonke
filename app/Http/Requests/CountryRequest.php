@@ -22,8 +22,10 @@ class CountryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:countries,name,'.($this->route('country')->id ?? 'NULL').',id',
-            'code_iso' => 'required|string|min:2|max:2|unique:countries,code_iso,'.($this->route('country')->id ?? 'NULL').',id',
+            'name' => 'required|string|max:255|unique:countries,name,' . ($this->route('country')->id ?? 'NULL') . ',id',
+            'code_iso' => 'required|string|min:2|max:2|unique:countries,code_iso,' . ($this->route('country')->id ?? 'NULL') . ',id',
+            'emoji' => 'nullable|string|max:10',
+            'is_active' => 'boolean',
         ];
     }
 }
