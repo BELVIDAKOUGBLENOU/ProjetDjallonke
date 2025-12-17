@@ -34,10 +34,17 @@ class CommunityController extends Controller
     {
         // retourn juste les communities dont l'utilisateur connecté est membre
         $q = $request->string('q')->toString();
-        $communities = Community::query()
-            ->whereHas('members', function ($query) {
+        $com = getPermissionsTeamId();
+        setPermissionsTeamId(null);
+        $communities = Community::query();
+        if (!auth()->user()->hasRole('Super-admin')) {
+            # code...
+            $communities = $communities->whereHas('members', function ($query) {
                 $query->where('users.id', auth()->id());
-            })
+            });
+        }
+        setPermissionsTeamId($com);
+        $communities = $communities
             ->orderByDesc('created_at')
             ->paginate()
             ->appends(['q' => $q]);
