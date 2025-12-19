@@ -1,11 +1,6 @@
 @import 'tailwindcss';
 @variant dark (&:where(.dark, .dark *));
-/* @import '@tabler/icons-webfont/tabler-icons.css'; */
-/* @import '@tabler/icons-webfont/dist/tabler-icons.min.css'; */
-/* @import '@tabler/icons-webfont/dist/tabler-icons.min.css'; */
 
-
-/* @import '../../node_modules/@tabler/icons-webfont/dist/tabler-icons.min.css'; */
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
@@ -339,4 +334,21 @@ select.input {
 
 .select2-container--default .select2-results__option--selected {
     @apply bg-gray-100 text-gray-900;
+}
+
+
+/* Ensure Tabler Icons render correctly */
+.ti {
+    font-family: 'tabler-icons' !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+    line-height: 1 !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-shadow: none !important;
+    display: inline-block !important;
+    text-rendering: auto !important;
+    -webkit-text-stroke: 0 !important;
 }

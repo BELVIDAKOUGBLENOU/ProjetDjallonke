@@ -18,6 +18,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@tabler/icons-webfont": "^3.26.0",
         "@vitejs/plugin-vue": "^6.0.3",
         "alpinejs": "^3.15.2",
         "jquery": "^3.7.1",
