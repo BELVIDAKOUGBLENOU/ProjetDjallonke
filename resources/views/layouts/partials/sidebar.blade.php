@@ -30,34 +30,19 @@
                 Parametrages
             </h3>
         </div>
-        @can('list ' . \App\Models\Country::getTableName())
+        <a href="{{ route('geographic-management.index') }}"
+            class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
+            <i class="ti ti-map text-xl"></i>
+            <span>Gestion Géographique</span>
+        </a>
+        @can('update ' . \App\Models\Country::getTableName())
             <a href="{{ route('countries.index') }}"
                 class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
                 <i class="ti ti-brand-google-maps text-xl"></i>
-                <span>Pays</span>
+                <span>Gérer Pays Actifs</span>
             </a>
         @endcan
-        @can('list ' . \App\Models\District::getTableName())
-            <a href="{{ route('districts.index') }}"
-                class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
-                <i class="ti ti-map-pin text-xl"></i>
-                <span>Districts</span>
-            </a>
-        @endcan
-        @can('list ' . \App\Models\SubDistrict::getTableName())
-            <a href="{{ route('sub-districts.index') }}"
-                class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
-                <i class="ti ti-map-2 text-xl"></i>
-                <span>Sous-districts</span>
-            </a>
-        @endcan
-        @can('list ' . \App\Models\Village::getTableName())
-            <a href="{{ route('villages.index') }}"
-                class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
-                <i class="ti ti-home-heart text-xl"></i>
-                <span>Villages</span>
-            </a>
-        @endcan
+
         @can('list ' . \App\Models\Community::getTableName())
             <a href="{{ route('communities.index') }}"
                 class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
@@ -65,7 +50,18 @@
                 <span>Communautés</span>
             </a>
         @endcan
+        <a href="{{ route('my-communities') }}"
+            class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
+            <i class="ti ti-carousel-horizontal text-xl"></i>
+            <span>Mes communautés</span>
+        </a>
+
         @can('list ' . \App\Models\Premise::getTableName())
+            <div class="pb-2 pt-4">
+                <h3 class="px-3 text-xs font-semibold uppercase tracking-wider theme-muted-text">
+                    Données
+                </h3>
+            </div>
             <a href="{{ route('premises.index') }}"
                 class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
                 <i class="ti ti-building-factory text-xl"></i>
@@ -88,11 +84,6 @@
             </a>
         @endcan
 
-        <a href="{{ route('my-communities') }}"
-            class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
-            <i class="ti ti-carousel-horizontal text-xl"></i>
-            <span>Mes communautés</span>
-        </a>
 
 
         @if (auth()->user()?->hasRole('Super-admin') ?? false)
@@ -114,7 +105,31 @@
                 <span>Rôles</span>
             </a>
         @endif
-
+        <div class="pb-2 pt-4">
+            <h3 class="px-3 text-xs font-semibold uppercase tracking-wider theme-muted-text">
+                Générale
+            </h3>
+        </div>
+        {{-- //profile --}}
+        <a href="{{ route('profile.edit') }}" data-route="profile.edit"
+            class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
+            <i class="ti ti-settings text-xl"></i>
+            <span>Paramétrage du compte</span>
+        </a>
+        {{-- notifications --}}
+        <a href="{{ route('notifications.index') }}" data-route="notifications.index"
+            class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
+            <i class="ti ti-bell text-xl"></i>
+            <span class="flex-1">Notifications</span>
+            @php
+                $unreadCount = auth()->user()->unreadNotifications->count();
+            @endphp
+            @if ($unreadCount > 0)
+                <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                </span>
+            @endif
+        </a>
 
     </nav>
 

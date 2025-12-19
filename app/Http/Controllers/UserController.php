@@ -54,6 +54,7 @@ class UserController extends Controller
         }
 
         $users = $users
+            ->with('roles')
             ->search($q)
             ->orderByDesc('created_at')
             ->paginate()

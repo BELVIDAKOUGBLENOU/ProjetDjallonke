@@ -69,6 +69,9 @@
                             <th scope="col"
                                 class="py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 Email</th>
+                            <th scope="col"
+                                class="py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Rôles</th>
 
                             <th class="py-3 px-3 text-right font-medium w-px">{{ __('Actions') }}</th>
                         </tr>
@@ -81,6 +84,24 @@
 
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $user->name }}</td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $user->email }}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                    @foreach ($user->roles as $role)
+                                        @php
+                                            $teamId = $role->pivot->community_id ?? $role->community_id;
+                                            $teamName = null;
+                                            if ($teamId) {
+                                                $teamName = App\Models\Community::find($teamId)?->name;
+                                            }
+                                        @endphp
+                                        <span
+                                            class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                            {{ $role->name }}
+                                            @if ($teamName)
+                                                <span class="ml-1 text-blue-500">({{ $teamName }})</span>
+                                            @endif
+                                        </span>
+                                    @endforeach
+                                </td>
 
                                 <td class="whitespace-nowrap px-3 py-3 text-right">
                                     <div

@@ -12,6 +12,7 @@ use App\Http\Controllers\DistrictController;
 use App\Http\Middleware\SetCommunityContext;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\SubDistrictController;
+use App\Http\Controllers\GeographicManagementController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -41,6 +42,7 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
     //
 
+    Route::get('geographic-management', [GeographicManagementController::class, 'index'])->name('geographic-management.index');
 
     Route::resource('countries', CountryController::class);
     Route::resource('districts', DistrictController::class);
@@ -85,5 +87,29 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
     Route::post('animals/import/confirm', [AnimalController::class, 'confirmImport'])->name('animals.import.confirm');
     Route::get('animals/import/errors', [AnimalController::class, 'downloadErrors'])->name('animals.import.errors');
     Route::resource('animals', AnimalController::class);
+
+    // API Geographic Routes (Session Auth)
+    Route::middleware(['auth'])->prefix('api/geo')->name('api.geo.')->group(function () {
+        Route::get('countries', [App\Http\Controllers\Api\GeographicApiController::class, 'countries'])->name('countries.index');
+        Route::get('countries/{country}/districts', [App\Http\Controllers\Api\GeographicApiController::class, 'districts'])->name('countries.districts');
+        Route::get('districts/{district}/sub-districts', [App\Http\Controllers\Api\GeographicApiController::class, 'subDistricts'])->name('districts.sub-districts');
+        Route::get('sub-districts/{subDistrict}/villages', [App\Http\Controllers\Api\GeographicApiController::class, 'villages'])->name('sub-districts.villages');
+
+        Route::post('countries', [App\Http\Controllers\Api\GeographicApiController::class, 'storeCountry'])->name('countries.store');
+        Route::put('countries/{country}', [App\Http\Controllers\Api\GeographicApiController::class, 'updateCountry'])->name('countries.update');
+        Route::delete('countries/{country}', [App\Http\Controllers\Api\GeographicApiController::class, 'destroyCountry'])->name('countries.destroy');
+
+        Route::post('districts', [App\Http\Controllers\Api\GeographicApiController::class, 'storeDistrict'])->name('districts.store');
+        Route::put('districts/{district}', [App\Http\Controllers\Api\GeographicApiController::class, 'updateDistrict'])->name('districts.update');
+        Route::delete('districts/{district}', [App\Http\Controllers\Api\GeographicApiController::class, 'destroyDistrict'])->name('districts.destroy');
+
+        Route::post('sub-districts', [App\Http\Controllers\Api\GeographicApiController::class, 'storeSubDistrict'])->name('sub-districts.store');
+        Route::put('sub-districts/{subDistrict}', [App\Http\Controllers\Api\GeographicApiController::class, 'updateSubDistrict'])->name('sub-districts.update');
+        Route::delete('sub-districts/{subDistrict}', [App\Http\Controllers\Api\GeographicApiController::class, 'destroySubDistrict'])->name('sub-districts.destroy');
+
+        Route::post('villages', [App\Http\Controllers\Api\GeographicApiController::class, 'storeVillage'])->name('villages.store');
+        Route::put('villages/{village}', [App\Http\Controllers\Api\GeographicApiController::class, 'updateVillage'])->name('villages.update');
+        Route::delete('villages/{village}', [App\Http\Controllers\Api\GeographicApiController::class, 'destroyVillage'])->name('villages.destroy');
+    });
 
 });

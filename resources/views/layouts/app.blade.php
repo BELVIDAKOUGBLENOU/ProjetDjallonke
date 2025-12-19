@@ -21,6 +21,7 @@
     {{-- cdn tabler-icons --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.36.0/dist/tabler-icons.min.css">
     <!-- Scripts -->
+    @routes
     @if (!($disableDefaultAssets ?? false))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
