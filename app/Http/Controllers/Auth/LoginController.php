@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Auth;
-
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 class LoginController extends Controller
@@ -34,7 +35,40 @@ class LoginController extends Controller
      */
     public function __construct()
     {
+        $this->middleware(function ($request, $next) {
+            if (Auth::check()) {
+                MobileAuthController::storeRedirectPath();
+                if (MobileAuthController::isRedirectionAvailable()) {
+                    return MobileAuthController::redirectForFlutter(Auth::user());
+                }
+                return redirect()->intended($this->redirectPath());
+            }
+            return $next($request);
+        })->only('showLoginForm');
+
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
+    }
+    /**
+     * Show the application's login form.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function showLoginForm()
+    {
+        MobileAuthController::storeRedirectPath();
+        return view('auth.login');
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+
+
+        if (MobileAuthController::isRedirectionAvailable()) {
+            return MobileAuthController::redirectForFlutter(Auth::user());
+        }
+
+        // Redirection par défaut pour les autres cas (navigateurs web, etc.)
+        return redirect()->intended($this->redirectPath());
     }
 }
