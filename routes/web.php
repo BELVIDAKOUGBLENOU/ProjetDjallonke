@@ -14,9 +14,9 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\SubDistrictController;
 use App\Http\Controllers\GeographicManagementController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 Auth::routes(['register' => false]);
 
@@ -113,3 +113,4 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
     });
 
 });
+Route::redirect('/', '/home');
