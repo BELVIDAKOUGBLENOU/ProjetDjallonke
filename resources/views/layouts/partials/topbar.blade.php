@@ -31,8 +31,12 @@
             <!-- Theme Toggle -->
             <button id="theme-toggle" class="rounded-lg p-2 theme-muted-text hover-theme-muted"
                 onclick="window.__toggleDarkMode()">
-                <i class="ti ti-moon text-2xl dark:hidden"></i>
-                <i class="ti ti-sun hidden text-2xl dark:block"></i>
+                <span class="block dark:hidden">
+                    <i class="ti ti-moon text-2xl"></i>
+                </span>
+                <span class="hidden dark:block">
+                    <i class="ti ti-sun text-2xl"></i>
+                </span>
             </button>
 
             <!-- Import Button (hidden on small screens) placed at far right) -->

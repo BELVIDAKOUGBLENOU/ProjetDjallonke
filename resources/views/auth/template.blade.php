@@ -15,7 +15,7 @@
     <!-- Scripts -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script>
+    {{-- <script>
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
         const saved = localStorage.getItem('darkMode');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -24,7 +24,7 @@
         } else {
             document.documentElement.classList.remove('dark');
         }
-    </script>
+    </script> --}}
 </head>
 
 <body class="min-h-screen theme-muted">
@@ -40,9 +40,13 @@
         <button id="theme-toggle" type="button" onclick="window.__toggleDarkMode()"
             class="p-2 rounded-full  theme-body transition-colors focus:outline-none">
             <!-- Sun icon for dark mode (to switch to light) -->
-            <i class="ti ti-sun text-xl hidden dark:block"></i>
+            <span class="hidden dark:block">
+                <i class="ti ti-sun text-xl"></i>
+            </span>
             <!-- Moon icon for light mode (to switch to dark) -->
-            <i class="ti ti-moon text-xl block dark:hidden"></i>
+            <span class="block dark:hidden">
+                <i class="ti ti-moon text-xl"></i>
+            </span>
         </button>
     </header>
 
