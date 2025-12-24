@@ -14,6 +14,8 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
+
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->foreignId('person_id')->nullable()->constrained('persons')->restrictOnDelete()->cascadeOnUpdate();

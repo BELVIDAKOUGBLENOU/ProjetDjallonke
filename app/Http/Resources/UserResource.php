@@ -14,6 +14,10 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        $data = parent::toArray($request);
+        unset($data['password'], $data['remember_token'], $data['created_at'], $data['updated_at']);
+        $communities = $this->mobileAppCommunities()->get();
+        $data['communities'] = CommunityResource::collection($communities);
+        return $data;
     }
 }

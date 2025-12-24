@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,6 +15,18 @@ class CommunityResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        $data = parent::toArray($request);
+        unset($data['created_at'], $data['updated_at'], $data['created_by'], $data['updated_by']);
+        if (!is_null($this->pivot)) {
+            $user_id = $this->pivot->user_id ?? null;
+            $community_id = $this->pivot->community_id ?? null;
+            $data['role'] = $this->pivot?->role ?? null;
+            $permissions = User::find($user_id)?->communityPermissions($community_id)->pluck('name')->toArray() ?? null;
+            $data['permissions'] = $permissions ?? [];
+            unset($data['pivot']);
+        }
+        $this->loadMissing('country');
+        $data['country'] = CountryResource::make($this->whenLoaded('country'));
+        return $data;
     }
 }

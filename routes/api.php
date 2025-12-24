@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\SubDistrictController;
 use App\Http\Middleware\AccessDonneesCommunautaire;
 use App\Http\Controllers\Api\WeightRecordController;
 use App\Http\Controllers\Api\PerformanceRecordController;
+use App\Http\Controllers\Api\UserController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -22,12 +23,9 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', function (Request $request) {
-        return UserResource::make($request->user());
-    });
-    Route::get('/user/info', function (Request $request) {
-        return UserResource::make($request->user());
-    });
+    Route::get('/user', [UserController::class, 'userInfo']);
+    Route::get('/user/info', [UserController::class, 'userInfo']);
+
 });
 //FINI , ADMINISTRATION GLOBALE
 Route::middleware('auth:sanctum')->group(function () {

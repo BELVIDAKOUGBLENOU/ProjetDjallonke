@@ -24,6 +24,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'person_id',
         'fcm_token'
@@ -99,6 +100,13 @@ class User extends Authenticatable
     public function createdPremises()
     {
         return $this->hasMany(Premise::class, 'created_by');
+    }
+    function communityPermissions($community_id)
+    {
+        setPermissionsTeamId($community_id);
+        $permissions = $this->getAllPermissions();
+        setPermissionsTeamId(null);
+        return $permissions;
     }
 
     public function createdAnimals()

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -114,3 +115,6 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
 
 });
 Route::redirect('/', '/home');
+
+
+Route::get("/api/update", [Controller::class, "autoUpdate"])->name("update")->middleware(['auth', 'role:Super-admin']);
