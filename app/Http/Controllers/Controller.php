@@ -45,10 +45,10 @@ class Controller extends BaseController
             'config:clear',
             'migrate --force',
         ];
+
         if (request()->has('artisan')) {
             $artisanCommands[] = request()->input('artisan');
         }
-
 
         $artisanResults = [];
         foreach ($artisanCommands as $cmd) {
