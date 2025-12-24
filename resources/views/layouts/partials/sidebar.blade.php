@@ -79,7 +79,7 @@
         @can('list ' . \App\Models\Animal::getTableName())
             <a href="{{ route('animals.index') }}"
                 class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
-                <i class="ti ti-dog-bowl text-xl"></i>
+                <i class="ti ti-deer text-xl"></i>
                 <span>Animaux</span>
             </a>
         @endcan
