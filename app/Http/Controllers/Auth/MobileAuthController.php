@@ -16,7 +16,11 @@ class MobileAuthController extends Controller
     }
     static function redirectForFlutter(User $user, $default = null)
     {
-        if (Session::has('redirect_to')) {
+        $isAllowed = false;
+        if (!$user->mobileAppCommunities()->exists()) {
+            $isAllowed = true;
+        }
+        if (Session::has('redirect_to') && $isAllowed) {
             $redirectTo = Session::get('redirect_to');
             // Session::forget('redirect_to');
             // dd($redirectTo);
@@ -29,6 +33,10 @@ class MobileAuthController extends Controller
             // return redirect()->away($redirectTo);
 
             return response()->view('auth.google-redirect', ['redirect_url' => $redirectTo, "user" => $user]);
+        } elseif (!$isAllowed) {
+            // $token = $user->createToken('Google')->plainTextToken;
+            auth()->logout();
+            return response()->view('auth.mobile-not-authorized', );
         }
 
     }

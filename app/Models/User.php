@@ -89,6 +89,12 @@ class User extends Authenticatable
             ->withPivot('role', 'added_at')
             ->withTimestamps();
     }
+    function mobileAppCommunities()
+    {
+        $communities = $this->communities()
+            ->whereIn('role', ['FARMER', 'TECHNICIAN']);
+        return $communities;
+    }
 
     public function createdPremises()
     {
