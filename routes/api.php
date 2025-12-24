@@ -25,6 +25,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return UserResource::make($request->user());
     });
+    Route::get('/user/info', function (Request $request) {
+        return UserResource::make($request->user());
+    });
 });
 //FINI , ADMINISTRATION GLOBALE
 Route::middleware('auth:sanctum')->group(function () {

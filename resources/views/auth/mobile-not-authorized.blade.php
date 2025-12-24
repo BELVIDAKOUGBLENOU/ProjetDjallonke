@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +18,7 @@
             margin: 0;
             padding: 1rem;
         }
+
         .card {
             background: white;
             border-radius: 14px;
@@ -26,6 +28,7 @@
             max-width: 350px;
             width: 100%;
         }
+
         h1 {
             font-size: 1.1rem;
             margin-bottom: 1.2rem;
@@ -35,19 +38,23 @@
             justify-content: center;
             gap: 0.5rem;
         }
+
         .icon {
             font-size: 2.5rem;
             color: #dc2626;
             margin-bottom: 1rem;
         }
+
         .info {
             margin-bottom: 1.5rem;
         }
+
         .info p {
             font-size: 0.95rem;
             margin: 0;
             color: #475569;
         }
+
         .back-btn {
             background-color: #334155;
             color: white;
@@ -60,20 +67,23 @@
             cursor: pointer;
             transition: background 0.2s ease;
         }
+
         .back-btn:hover {
             background-color: #1e293b;
         }
     </style>
 </head>
+
 <body>
     <div class="card">
         <div class="icon">🚫</div>
         <h1>Accès non autorisé</h1>
         <div class="info">
             <p>Vous n'êtes pas autorisé à utiliser l'application mobile.<br>
-            Veuillez contacter l'administrateur si vous pensez qu'il s'agit d'une erreur.</p>
+                Veuillez contacter l'administrateur si vous pensez qu'il s'agit d'une erreur.</p>
         </div>
         <button class="back-btn" onclick="window.history.back()">Retour</button>
     </div>
 </body>
+
 </html>
