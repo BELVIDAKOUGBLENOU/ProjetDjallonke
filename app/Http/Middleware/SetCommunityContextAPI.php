@@ -21,7 +21,7 @@ class SetCommunityContextAPI
         }
         $user = auth()->user();
 
-        if ($communityId && $user->communities()->where('communities.id', $communityId)->exists()) {
+        if ($communityId && $user->mobileAppCommunities()->where('communities.id', $communityId)->exists()) {
             setPermissionsTeamId($communityId);
         } else {
             if ($communityId) {

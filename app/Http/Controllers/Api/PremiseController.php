@@ -23,6 +23,9 @@ class PremiseController extends Controller
         $this->middleware(SetCommunityContextAPI::class);
         $this->middleware(function ($request, $next) {
             $premisesId = $request->route('api_premise');
+            if (!$premisesId) {
+                return $next($request);
+            }
             $premise = ($premisesId instanceof Premise) ? $premisesId : Premise::findOrFail($premisesId);
 
             if ($premise) {

@@ -16,6 +16,7 @@ use App\Http\Middleware\AccessDonneesCommunautaire;
 use App\Http\Controllers\Api\WeightRecordController;
 use App\Http\Controllers\Api\PerformanceRecordController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Middleware\SetCommunityContextAPI;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -46,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::middleware(['auth:sanctum', AccessDonneesCommunautaire::class])->group(function () {
+Route::middleware(['auth:sanctum', SetCommunityContextAPI::class])->group(function () {
 
 
     Route::apiResource('api-persons', PersonController::class)->only(['index',]);
@@ -56,7 +57,7 @@ Route::middleware(['auth:sanctum', AccessDonneesCommunautaire::class])->group(fu
 
     Route::get('get-all-animals', [AnimalController::class, 'getAllData']);
 
-    Route::apiResource('api-premises', PremiseController::class)->only(['index', 'show', 'store']);
+    Route::apiResource('api-premises', PremiseController::class);
     Route::get('get-all-premises', [PremiseController::class, 'getAllData']);
     // RESTE A FAIR
     Route::apiResource('api-animals', AnimalController::class);

@@ -144,6 +144,16 @@ class Community extends Model
             }
             // Assign Role with Team Context
             setPermissionsTeamId($communityId);
+            //vérifier s'il a déjà un role dans cette communauté
+            // dump("role actuelle", $user->getRoleNames());
+            if (count($user->getRoleNames()) != 0) {
+                foreach ($user->getRoleNames() as $existingRole) {
+                    // dump("suppression de  : " . $existingRole);
+                    $user->removeRole($existingRole);
+                }
+            }
+            // dump("role actuelle", $user->getRoleNames());
+            // dd($role);
             $user->assignRole($role);
 
 
@@ -159,8 +169,12 @@ class Community extends Model
 
     public static function removeMember(int $communityId, int $userId)
     {
-        return CommunityMembership::where('community_id', $communityId)
+        $memberShip = CommunityMembership::where('community_id', $communityId)
             ->where('user_id', $userId)
-            ->delete();
+            ->firstOrFail();
+        setPermissionsTeamId($communityId);
+        $memberShip->user->removeRole($memberShip->role);
+        setPermissionsTeamId(null);
+        return $memberShip->delete();
     }
 }

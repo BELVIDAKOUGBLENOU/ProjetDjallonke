@@ -42,7 +42,7 @@ class PremiseController extends Controller
         $premises = Premise::query()
             ->with(['village', 'creator'])
             ->search($q)
-            ->where('community_id', session('selected_community'))
+            ->where('community_id', getPermissionsTeamId())
             ->orderByDesc('created_at')
             ->paginate()
             ->appends(['q' => $q]);
