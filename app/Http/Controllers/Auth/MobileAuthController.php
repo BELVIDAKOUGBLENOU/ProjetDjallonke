@@ -17,6 +17,7 @@ class MobileAuthController extends Controller
     static function redirectForFlutter(User $user, $default = null)
     {
         $isAllowed = false;
+        dd($user->mobileAppCommunities());
         if (!$user->mobileAppCommunities()->exists()) {
             $isAllowed = true;
         }
