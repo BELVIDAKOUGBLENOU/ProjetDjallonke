@@ -12,6 +12,7 @@ class Premise extends Model
 
     protected $fillable = [
         'village_id',
+        "uid",
         'created_by',
         'community_id',
         'code',

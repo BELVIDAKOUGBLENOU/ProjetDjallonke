@@ -70,6 +70,7 @@ class PremiseController extends Controller
         $data = $request->validated();
         $data['created_by'] = auth()->id();
         $data['community_id'] = session('selected_community');
+        $data['uid'] = \Illuminate\Support\Str::uuid()->toString();
 
         Premise::create($data);
 
