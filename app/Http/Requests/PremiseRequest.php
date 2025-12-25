@@ -32,7 +32,7 @@ class PremiseRequest extends FormRequest
             ],
             'address' => 'nullable|string|max:255',
             'gps_coordinates' => 'nullable|string|max:255',
-            'type' => 'required|string|max:255',
+            'type' => 'required|string|max:255|in:FARM,MARKET,SLAUGHTERHOUSE,PASTURE,TRANSPORT',
             'health_status' => 'nullable|string|max:255',
         ];
     }

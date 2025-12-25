@@ -59,6 +59,7 @@ Route::middleware(['auth:sanctum', SetCommunityContextAPI::class])->group(functi
 
     Route::apiResource('api-premises', PremiseController::class);
     Route::get('get-all-premises', [PremiseController::class, 'getAllData']);
+    Route::post('sync-premises', [PremiseController::class, 'syncPremises']);
     // RESTE A FAIR
     Route::apiResource('api-animals', AnimalController::class);
     // add identifier
