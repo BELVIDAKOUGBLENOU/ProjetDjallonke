@@ -53,21 +53,24 @@
             </div>
             <div class="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
                 <div class="font-semibold">Actions rapides</div>
-                <a href="{{ route('communities.create') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition">
+                <a href="{{ route('communities.create') }}"
+                    class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition">
                     <i class="ti ti-users-plus text-xl text-green-500"></i>
                     <div>
                         <div class="font-medium">Créer une communauté</div>
                         <div class="text-xs text-gray-500">Ajouter une nouvelle communauté</div>
                     </div>
                 </a>
-                <a href="{{ route('users.create') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition">
+                <a href="{{ route('users.create') }}"
+                    class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition">
                     <i class="ti ti-user-plus text-xl text-blue-500"></i>
                     <div>
                         <div class="font-medium">Ajouter un utilisateur</div>
                         <div class="text-xs text-gray-500">Créer un compte et lui attribuer des rôles</div>
                     </div>
                 </a>
-                <a href="{{ route('animals.create') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition">
+                <a href="{{ route('animals.create') }}"
+                    class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition">
                     <i class="ti ti-bone text-xl text-indigo-500"></i>
                     <div>
                         <div class="font-medium">Enregistrer un animal</div>
@@ -96,7 +99,7 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        (function(){
+        (function() {
             const labels = @json($dates ?? []);
             const animalsData = @json($animalsData ?? []);
             const eventsData = @json($eventsData ?? []);
@@ -106,8 +109,28 @@
                 if (!el) return;
                 new Chart(el, {
                     type: 'line',
-                    data: { labels: labels, datasets: [{ label: label, data: data, borderColor: color, backgroundColor: color.replace('1)', '0.08)').replace('rgb', 'rgba'), tension: 0.2, fill: true }] },
-                    options: { responsive: true, scales: { x: { display: true }, y: { beginAtZero: true } } }
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            borderColor: color,
+                            backgroundColor: color.replace('1)', '0.08)').replace('rgb', 'rgba'),
+                            tension: 0.2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                display: true
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
                 });
             };
 
