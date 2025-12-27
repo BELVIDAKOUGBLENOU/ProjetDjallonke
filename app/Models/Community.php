@@ -161,7 +161,9 @@ class Community extends Model
             // Send Email if new user
             if ($isNewUser && $password) {
                 Mail::to($user->email)->send(new NewMemberCredentials($user, $password, Community::find($communityId)));
+                $user->notifyNow(new \App\Notifications\PasswordChangeNotification());
             }
+
 
             return $user;
         });

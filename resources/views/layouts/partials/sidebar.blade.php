@@ -30,11 +30,13 @@
                 Parametrages
             </h3>
         </div>
-        <a href="{{ route('geographic-management.index') }}"
-            class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
-            <i class="ti ti-map text-xl"></i>
-            <span>Gestion Géographique</span>
-        </a>
+        @can('list ' . \App\Models\Country::getTableName())
+            <a href="{{ route('geographic-management.index') }}"
+                class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">
+                <i class="ti ti-map text-xl"></i>
+                <span>Gestion Géographique</span>
+            </a>
+        @endcan
         @can('update ' . \App\Models\Country::getTableName())
             <a href="{{ route('countries.index') }}"
                 class="app-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition theme-body hover-theme-muted">

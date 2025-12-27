@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetCommunityContext
@@ -17,29 +18,41 @@ class SetCommunityContext
     {
         $communityId = session('selected_community');
         $communityIdFromUser = $request->has('community_id') ? $request->input('community_id') : null;
-        if ($communityIdFromUser) {
+        $user = auth()->user();
+        // Vérifie si l'utilisateur a au moins un rôle global (team 0)
+        $hasGlobalRole = false;
+        if ($user) {
+            setPermissionsTeamId(0);
+            $hasGlobalRole = DB::table('model_has_roles')
+                ->where('model_type', get_class($user))
+                ->where('model_id', $user->id)
+                ->where('community_id', 0)
+                ->exists();
+            // dd($hasGlobalRole);
+            setPermissionsTeamId(null);
+        }
+        if ($hasGlobalRole) {
+            session(['selected_community' => 0]);
+            $communityId = 0;
+            setPermissionsTeamId(0);
+            return $next($request);
+        }
+
+        if ($communityIdFromUser !== null) {
             $communityId = $communityIdFromUser;
             session(['selected_community' => $communityIdFromUser]);
         }
-        if ($communityId) {
-            $user = auth()->user();
 
-            if ($user && $user->communities()->where('communities.id', $communityId)->exists()) {
-                // \Spatie\Permission\PermissionRegistrar::$cacheKey = 'spatie.permission.cache.tenant.' . $communityId;
-                // // If using Spatie Permission with teams/tenants
-                // // setPermissionsTeamId($communityId);
-                // // Since the user mentioned setPermissionsTeamId specifically:
-                // if (function_exists('setPermissionsTeamId')) {
-                setPermissionsTeamId($communityId);
-                // } elseif (method_exists(app(\Spatie\Permission\PermissionRegistrar::class), 'setPermissionsTeamId')) {
-                //     app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($communityId);
-                // }
-            } else {
-                // User is not a member of the selected community anymore
-                session()->forget('selected_community');
-                self::selectFirst();
-            }
+        $user = auth()->user();
+
+        // If no community selected, or user is not a member, select first
+        if (!$communityId) {
+            self::selectFirst();
+        } elseif ($user && $user->communities()->where('communities.id', $communityId)->exists()) {
+            setPermissionsTeamId($communityId);
         } else {
+            // User is not a member of the selected community anymore
+            session()->forget('selected_community');
             self::selectFirst();
         }
 

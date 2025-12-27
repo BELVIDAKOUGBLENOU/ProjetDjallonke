@@ -17,27 +17,33 @@
                 <p class="mt-0 text-sm .theme-muted-text">Détails et informations de la Community.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2 justify-end">
-                <a href="{{ route('communities.index') }}"
-                    class="flex items-center gap-2 rounded-md border border-gray-300 theme-surface theme-title px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500">
-                    <span class="ti ti-arrow-left text-base"></span>
-                    Retour
-                </a>
-                <a href="{{ route('communities.edit', $community->id) }}"
-                    class="flex items-center gap-2 rounded-md border border-gray-300 theme-surface theme-title px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500">
-                    <span class="ti ti-edit text-base"></span>
-                    Modifier
-                </a>
-                <form action="{{ route('communities.destroy', $community->id) }}" method="POST"
-                    onsubmit="return confirmDeletion(event, 'Suppresion', 'Voulez-vous vraiment supprimer cette donnée, Cette action est irréversible ?')"
-                    class="inline-flex">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                        class="flex items-center gap-2 rounded-md border border-red-200 theme-surface theme-title px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/40">
-                        <span class="ti ti-trash text-base"></span>
-                        Supprimer
-                    </button>
-                </form>
+                @can('view ' . \App\Models\Community::getTableName())
+                    <a href="{{ route('communities.index') }}"
+                        class="flex items-center gap-2 rounded-md border border-gray-300 theme-surface theme-title px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500">
+                        <span class="ti ti-arrow-left text-base"></span>
+                        Retour
+                    </a>
+                @endcan
+                @can('update ' . \App\Models\Community::getTableName())
+                    <a href="{{ route('communities.edit', $community->id) }}"
+                        class="flex items-center gap-2 rounded-md border border-gray-300 theme-surface theme-title px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <span class="ti ti-edit text-base"></span>
+                        Modifier
+                    </a>
+                @endcan
+                @can('delete ' . \App\Models\Community::getTableName())
+                    <form action="{{ route('communities.destroy', $community->id) }}" method="POST"
+                        onsubmit="return confirmDeletion(event, 'Suppresion', 'Voulez-vous vraiment supprimer cette donnée, Cette action est irréversible ?')"
+                        class="inline-flex">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="flex items-center gap-2 rounded-md border border-red-200 theme-surface theme-title px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/40">
+                            <span class="ti ti-trash text-base"></span>
+                            Supprimer
+                        </button>
+                    </form>
+                @endcan
             </div>
         </div>
 
