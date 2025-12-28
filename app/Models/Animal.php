@@ -2,22 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Animal extends Model
 {
     /** @use HasFactory<\Database\Factories\AnimalFactory> */
     use HasFactory;
+    use SoftDeletes;
+
 
     protected $fillable = [
-        'uid',
+
         'created_by',
         'premises_id',
         'species',
         'sex',
         'birth_date',
         'life_status',
+        'uid', 'version'
     ];
     public function scopeSearch($query, ?string $term)
     {

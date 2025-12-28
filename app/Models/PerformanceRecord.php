@@ -2,20 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PerformanceRecord extends Model
 {
     /** @use HasFactory<\Database\Factories\PerformanceRecordFactory> */
     use HasFactory;
+    use SoftDeletes;
+
 
     protected $fillable = [
-        'uid',
+
         'created_by',
         'animal_id',
         'recorded_date',
         'context',
+        'uid',
+        'version'
     ];
 
     public static function getTableName()

@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Premise extends Model
 {
     /** @use HasFactory<\Database\Factories\PremiseFactory> */
     use HasFactory;
+    use SoftDeletes;
+
 
     protected $fillable = [
         'village_id',
-        "uid",
+
         'created_by',
         'community_id',
         'code',
@@ -20,6 +23,8 @@ class Premise extends Model
         'gps_coordinates',
         'type',
         'health_status',
+        'uid',
+        'version'
     ];
 
     public static function getTableName()

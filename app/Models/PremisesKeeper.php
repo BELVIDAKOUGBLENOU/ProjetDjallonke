@@ -2,15 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PremisesKeeper extends Model
 {
     /** @use HasFactory<\Database\Factories\PremisesKeeperFactory> */
     use HasFactory;
+    use SoftDeletes;
 
-    protected $fillable = ['premises_id', 'person_id', 'start_date', 'end_date'];
+    protected $fillable = [
+        'premises_id',
+        'person_id',
+        'start_date',
+        'end_date'
+        ,
+        'uid',
+        'version'
+    ];
 
     public function premise()
     {

@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Event extends Model
 {
     /** @use HasFactory<\Database\Factories\EventFactory> */
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
-        'uid',
+
         'created_by',
         'confirmed_by',
         'animal_id',
@@ -19,6 +21,8 @@ class Event extends Model
         'event_date',
         'comment',
         'is_confirmed',
+        'uid',
+        'version'
     ];
 
     public function creator()
