@@ -20,40 +20,26 @@ class NewMemberCredentials extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $password, $community)
+    public function __construct($user, $password, $community = null)
     {
         $this->user = $user;
         $this->password = $password;
         $this->community = $community;
     }
 
-    /**
-     * Get the message envelope.
-     */
-    public function envelope(): Envelope
+    public function build()
     {
-        return new Envelope(
-            subject: 'New Member Credentials',
-        );
-    }
+        $subject = 'Vos identifiants de connexion';
+        $mailMessage = (new \Illuminate\Notifications\Messages\MailMessage)
+            ->subject($subject)
+            ->greeting('Bienvenue sur la plateforme !')
+            ->line('Voici vos identifiants de connexion :')
+            ->line('Email : ' . $this->user->email)
+            ->line('Mot de passe : ' . $this->password)
+            ->action('Se connecter', url('/login'));
 
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            markdown: 'emails.members.credentials',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+        return $this
+            ->subject($subject)
+            ->html((string) $mailMessage->render());
     }
 }

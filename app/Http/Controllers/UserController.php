@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Redirect;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -70,10 +72,10 @@ class UserController extends Controller
     public function create(): View
     {
         $user = new User();
-        $roles = Role::all();
+        $roles = Role::whereIn("name", ['Super-admin'])->get();
         $permissions = Permission::all();
         if (!auth()->user()->hasRole('Super-admin')) {
-            $roles = auth()->user()->entreprise->roles();
+            $roles = Role::whereNotIn("name", ['Super-admin'])->get();
             $permissions = Role::findByName('Administrateur', 'web')->permissions;
         }
 
@@ -86,20 +88,45 @@ class UserController extends Controller
     public function store(UserRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['password'] = Hash::make('password'); // Default password or handle via request
 
-        $user = User::create($data);
+        // Générer un mot de passe aléatoire de 8 caractères
+        $plainPassword = str()->random(8);
+        $data['password'] = Hash::make($plainPassword);
+        DB::beginTransaction();
+        try {
+            //code...
+            if (User::where('email', $data['email'])->exists()) {
+                $user = User::where('email', $data['email'])->first();
+            } else {
+                $user = User::create($data);
+            }
 
-        if ($request->has('roles')) {
-            $user->syncRoles($request->roles);
+            if ($request->has('roles')) {
+                setPermissionsTeamId(0);
+                if (!(auth()->user()->getRoleNames()->count() > 0)) {
+                    setPermissionsTeamId(null);
+                }
+                $user->syncRoles($request->roles);
+            }
+
+            if ($request->has('permissions')) {
+                $user->syncPermissions($request->permissions);
+            }
+
+            // Envoyer le mot de passe par email
+            Mail::to($user->email)->send(new \App\Mail\NewMemberCredentials($user, $plainPassword));
+
+            // Envoyer une notification in-app pour recommander le changement de mot de passe
+            $user->notifyNow(new \App\Notifications\PasswordChangeNotification());
+            DB::commit();
+            return Redirect::route('users.index')
+                ->with('success', 'Utilisateur créé avec succès. Un mot de passe temporaire a été envoyé par email.');
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::rollback();
+            return Redirect::route('users.index')
+                ->with('error', $th->getMessage());
         }
-
-        if ($request->has('permissions')) {
-            $user->syncPermissions($request->permissions);
-        }
-
-        return Redirect::route('users.index')
-            ->with('success', 'Utilisateur créé avec succès.');
     }
 
     /**

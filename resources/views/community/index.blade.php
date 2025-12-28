@@ -45,14 +45,14 @@
                 @endif
             </div>
             <div class="flex-1"></div>
-            {{-- @can('create ' . \App\Models\Community::getTableName()) --}}
+            @can('create ' . \App\Models\Community::getTableName())
 
             <a href="{{ route('communities.create') }}"
                 class="inline-flex items-center gap-2 rounded-md  px-4 py-1 text-sm font-medium text-black bg-secondary  focus:outline-none focus:ring-2 ">
                 <span class="ti ti-plus text-base"></span>
                 Nouveau
             </a>
-            {{-- @endcan --}}
+            @endcan
 
         </form>
     </div>
@@ -100,7 +100,7 @@
                                 <td class="whitespace-nowrap px-3 py-3 text-right">
                                     <div
                                         class="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition">
-                                        {{-- @can('view ' . \App\Models\Community::getTableName()) --}}
+                                        @can('view ' . \App\Models\Community::getTableName())
 
                                         <a href="{{ route('communities.show', $community->id) }}"
                                             title="{{ __('Show') }}"
@@ -108,17 +108,17 @@
                                             <span class="ti ti-eye text-[17px]"></span>
                                             <span class="sr-only">{{ __('Show') }}</span>
                                         </a>
-                                        {{-- @endcan --}}
-                                        {{-- @can('update ' . \App\Models\Community::getTableName()) --}}
+                                        @endcan
+                                        @can('update ' . \App\Models\Community::getTableName())
                                         <a href="{{ route('communities.edit', $community->id) }}"
                                             title="{{ __('Edit') }}"
                                             class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-500 hover:text-amber-600 hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition">
                                             <span class="ti ti-edit text-[17px]"></span>
                                             <span class="sr-only">{{ __('Edit') }}</span>
                                         </a>
-                                        {{-- @endcan --}}
+                                        @endcan
 
-                                        {{-- @can('delete ' . \App\Models\Community::getTableName()) --}}
+                                        @can('delete ' . \App\Models\Community::getTableName())
                                         <form action="{{ route('communities.destroy', $community->id) }}" method="POST"
                                             class="inline-flex"
                                             onsubmit="return confirmDeletion(event, 'Suppresion', 'Voulez-vous vraiment supprimer cette donnée, Cette action est irréversible ?')">
@@ -130,7 +130,7 @@
                                                 <span class="sr-only">{{ __('Delete') }}</span>
                                             </button>
                                         </form>
-                                        {{-- @endcan --}}
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

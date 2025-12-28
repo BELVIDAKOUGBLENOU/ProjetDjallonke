@@ -26,7 +26,9 @@ class DatabaseSeeder extends Seeder
         ], [
             'password' => bcrypt('p@ssw0rd'),
         ]);
+        setPermissionsTeamId(0);
         $admin->assignRole('Super-admin');
+        setPermissionsTeamId(null);
 
     }
 }
