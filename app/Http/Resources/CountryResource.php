@@ -32,7 +32,7 @@ class CountryResource extends JsonResource
                 $data['districts'] = $districtsResource;
             }
         }
-        unset($data['created_at'], $data['updated_at'], $data['is_active']);
+        unset($data['is_active']);
 
         return $data;
     }

@@ -24,7 +24,7 @@ class VillageResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        unset($data['created_at'], $data['updated_at'], );
+        // unset($data['created_at'], $data['updated_at'], );
 
         return $data;
     }
