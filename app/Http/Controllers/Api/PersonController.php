@@ -66,7 +66,9 @@ class PersonController extends Controller
     public function index(Request $request)
     {
         $communityId = getPermissionsTeamId();
-
+        $since = $request->validate([
+            'since' => 'nullable|date_format:Y-m-d H:i:s',
+        ])['since'] ?? "1970-01-01 00:00:00";
         $persons = Person::query()
             ->when($communityId, function ($query) use ($communityId) {
                 $query->whereHas('personRoles', function ($q) use ($communityId) {
@@ -77,9 +79,21 @@ class PersonController extends Controller
                     });
                 });
             })
+            ->when($since, function ($query) use ($since) {
+                $query->where(function ($q) use ($since) {
+                    $q->where('created_at', '>=', $since)
+                        ->orWhere('updated_at', '>=', $since);
+                });
+            })
             ->paginate();
+        $resource = PersonResource::collection($persons);
+        $result = $resource->response()->getData(true);
+        // si on est à la derniere page , on ajoute les last_synced_at
+        if ($persons->currentPage() >= $persons->lastPage()) {
+            $result['last_synced_at'] = now()->toDateTimeString();
+        }
 
-        return PersonResource::collection($persons);
+        return response()->json($result);
     }
 
     /**

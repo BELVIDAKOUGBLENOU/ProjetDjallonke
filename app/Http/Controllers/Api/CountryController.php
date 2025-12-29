@@ -44,37 +44,66 @@ class CountryController extends Controller
         $this->middleware("permission:delete $table")->only('destroy');
     }
 
-    public function getAllData(Request $request): JsonResponse
-    {
-        $countries = Country::where("is_active", true);
-        $imbriqued = $request->boolean('imbriqued');
-        if ($imbriqued) {
-            $countries = $countries->with('districts.subDistricts.villages');
-        }
-        $countries = $countries->get();
+    // public function getAllData(Request $request): JsonResponse
+    // {
+    //     $countries = Country::where("is_active", true);
+    //     $imbriqued = $request->boolean('imbriqued');
+    //     if ($imbriqued) {
+    //         $countries = $countries->with('districts.subDistricts.villages');
+    //     }
+    //     $countries = $countries->get();
 
-        $resource = CountryResource::collection($countries);
-        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
+    //     $resource = CountryResource::collection($countries);
+    //     $resource->each(fn($r) => $r->setImbriqued($imbriqued));
 
-        return response()->json($resource);
-    }
+    //     return response()->json($resource);
+    // }
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+
         $countries = Country::where("is_active", true);
-        $imbriqued = $request->boolean('imbriqued');
+        $imbriqued = $request->boolean('imbriqued', true);
+        $since = $request->validate([
+            'since' => 'nullable|date_format:Y-m-d H:i:s',
+        ])['since'] ?? "1970-01-01 00:00:00";
+        if ($since) {
+            $countries = $countries->where(function ($query) use ($since) {
+                $query->where('created_at', '>=', $since)
+                    ->orWhere('updated_at', '>=', $since)
+                    ->orWhereHas('districts', function ($q) use ($since) {
+                        $q->where('created_at', '>=', $since)
+                            ->orWhere('updated_at', '>=', $since)
+                            ->orWhereHas('subDistricts', function ($q2) use ($since) {
+                                $q2->where('created_at', '>=', $since)
+                                    ->orWhere('updated_at', '>=', $since)
+                                    ->orWhereHas('villages', function ($q3) use ($since) {
+                                        $q3->where('created_at', '>=', $since)
+                                            ->orWhere('updated_at', '>=', $since);
+                                    });
+                            });
+                    });
+
+            });
+        }
         if ($imbriqued) {
             $countries = $countries->with('districts.subDistricts.villages');
         }
-        $countries = $countries->paginate();
+        $countries = $countries->paginate(5);
 
         $resource = CountryResource::collection($countries);
         $resource->each(fn($r) => $r->setImbriqued($imbriqued));
 
-        return $resource;
+        $result = $resource->response()->getData(true);
+        // si on est à la derniere page , on ajoute les last_synced_at
+        if ($countries->currentPage() >= $countries->lastPage()) {
+            $result['last_synced_at'] = now()->toDateTimeString();
+        }
+
+        return response()->json($result);
     }
 
     /**

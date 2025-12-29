@@ -60,10 +60,24 @@ class PremiseController extends Controller
     public function index(Request $request)
     {
         $premises = Premise::
-            where("community_id", getPermissionsTeamId())->
-            paginate();
+            where("community_id", getPermissionsTeamId());
 
-        return PremiseResource::collection($premises);
+        $since = $request->validate([
+            'since' => 'nullable|date_format:Y-m-d H:i:s',
+        ])['since'] ?? "1970-01-01 00:00:00";
+        if ($since) {
+            $premises = $premises->where('updated_at', '>=', $since);
+        }
+
+        $premises = $premises->paginate();
+        $resource = PremiseResource::collection($premises);
+        $result = $resource->response()->getData(true);
+        // si on est à la derniere page , on ajoute les last_synced_at
+        if ($premises->currentPage() >= $premises->lastPage()) {
+            $result['last_synced_at'] = now()->toDateTimeString();
+        }
+
+        return response()->json($result);
     }
 
     /**

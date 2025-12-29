@@ -30,19 +30,22 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 //FINI , ADMINISTRATION GLOBALE
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/pull/countries', [CountryController::class, 'index']);
+    Route::get('/pull/persons', [PersonController::class, 'index']);
+    Route::get('/pull/premises', [PremiseController::class, 'index']);
+    Route::get('/pull/animals', [AnimalController::class, 'index']);
+    // Route::apiResource('api-countries', CountryController::class)->only(['index', 'show']);
+    // Route::get('get-all-countries', [CountryController::class, 'getAllData']);
 
-    Route::apiResource('api-countries', CountryController::class)->only(['index', 'show']);
-    Route::get('get-all-countries', [CountryController::class, 'getAllData']);
+    // Route::apiResource('api-districts', DistrictController::class)->only(['index', 'show']);
+    // Route::get('get-all-districts', [DistrictController::class, 'getAllData']);
 
-    Route::apiResource('api-districts', DistrictController::class)->only(['index', 'show']);
-    Route::get('get-all-districts', [DistrictController::class, 'getAllData']);
+    // Route::apiResource('api-sub-districts', SubDistrictController::class)->only(['index', 'show']);
+    // Route::get('get-all-sub-districts', [SubDistrictController::class, 'getAllData']);
 
-    Route::apiResource('api-sub-districts', SubDistrictController::class)->only(['index', 'show']);
-    Route::get('get-all-sub-districts', [SubDistrictController::class, 'getAllData']);
-
-    Route::apiResource('api-villages', VillageController::class)->only(['index', 'show']);
-    Route::get('get-all-villages', [VillageController::class, 'getAllData']);
-    Route::apiResource('api-communities', CommunityController::class)->only(['index', 'show']);
+    // Route::apiResource('api-villages', VillageController::class)->only(['index', 'show']);
+    // Route::get('get-all-villages', [VillageController::class, 'getAllData']);
+    // Route::apiResource('api-communities', CommunityController::class)->only(['index', 'show']);
     // Route::get('get-all-communities', [CommunityController::class, 'getAllData']);
 
 });
