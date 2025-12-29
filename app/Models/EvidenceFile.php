@@ -4,13 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EvidenceFile extends Model
 {
     /** @use HasFactory<\Database\Factories\EvidenceFileFactory> */
     use HasFactory;
+    use SoftDeletes;
 
-    protected $fillable = ['uid', 'event_id', 'url', 'file_type'];
+    protected $fillable = [
+        'event_id',
+        'url',
+        'file_type',
+        'uid',
+        'version'
+    ];
 
     public function event()
     {

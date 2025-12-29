@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,6 +13,8 @@ return new class extends Migration
         Schema::create('animals', function (Blueprint $table) {
             $table->id();
             $table->string('uid')->unique();
+            $table->bigInteger('version')->default(1);
+
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
             $table->foreignId('premises_id')->constrained('premises')->cascadeOnDelete()->cascadeOnUpdate();
             $table->enum('species', ['OVINE', 'CAPRINE']);
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->enum('life_status', ['ALIVE', 'DEAD', 'SOLD']);
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

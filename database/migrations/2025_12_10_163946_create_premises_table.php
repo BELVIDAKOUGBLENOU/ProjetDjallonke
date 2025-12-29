@@ -12,7 +12,8 @@ return new class extends Migration {
     {
         Schema::create('premises', function (Blueprint $table) {
             $table->id();
-            $table->string('uid')->nullable()->unique();
+            $table->string('uid')->unique();
+            $table->bigInteger('version')->default(1);
 
             $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
@@ -25,6 +26,7 @@ return new class extends Migration {
             $table->string('health_status')->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

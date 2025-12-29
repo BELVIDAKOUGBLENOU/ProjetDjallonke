@@ -66,6 +66,8 @@ class AnimalController extends Controller
     public function store(AnimalRequest $request): RedirectResponse
     {
         $all = $request->validated();
+        $all['uid'] = \Illuminate\Support\Str::uuid()->toString();
+
         Animal::create($all);
 
         return Redirect::route('animals.index')

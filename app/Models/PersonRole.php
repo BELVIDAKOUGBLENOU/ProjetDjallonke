@@ -4,13 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PersonRole extends Model
 {
     /** @use HasFactory<\Database\Factories\PersonRoleFactory> */
     use HasFactory;
+    use SoftDeletes;
 
-    protected $fillable = ['person_id', 'animal_id', 'role_type'];
+    protected $fillable = [
+        'person_id',
+        'animal_id',
+        'role_type',
+        'uid',
+        'version'
+    ];
 
     public function person()
     {
