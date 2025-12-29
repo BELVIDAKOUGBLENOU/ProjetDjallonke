@@ -60,15 +60,28 @@ class CommunityController extends Controller
      */
     public function index(Request $request)
     {
+        $since = $request->validate([
+            'since' => 'nullable|date_format:Y-m-d H:i:s',
+        ])['since'] ?? "1970-01-01 00:00:00";
         $communities = Community::
             where(function ($query) {
                 $query->whereHas('members', function ($query) {
                     $query->where('users.id', auth()->id());
                 });
+            })->
+            when($since, function ($query, $since) {
+                $query->where(function ($q) use ($since) {
+                    $q->where('created_at', '>=', $since)
+                        ->orWhere('updated_at', '>=', $since);
+                });
             })
             ->paginate();
-
-        return CommunityResource::collection($communities);
+        $resource = CommunityResource::collection($communities);
+        $result = $resource->response()->getData(true);
+        if ($communities->currentPage() >= $communities->lastPage()) {
+            $result['last_synced_at'] = now()->toDateTimeString();
+        }
+        return $result;
     }
 
     /**

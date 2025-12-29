@@ -85,7 +85,7 @@ class PersonController extends Controller
                         ->orWhere('updated_at', '>=', $since);
                 });
             })
-            ->paginate();
+            ->paginate(100);
         $resource = PersonResource::collection($persons);
         $result = $resource->response()->getData(true);
         // si on est à la derniere page , on ajoute les last_synced_at

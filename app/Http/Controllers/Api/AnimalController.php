@@ -40,15 +40,17 @@ class AnimalController extends Controller
         $this->middleware("permission:delete $table")->only('destroy');
     }
 
-    public function getAllData(Request $request): JsonResponse
-    {
-        $communityId = getPermissionsTeamId();
-        $animals = Animal::query()
-            ->where('community_id', $communityId)
-            ->get();
+    // public function getAllData(Request $request): JsonResponse
+    // {
+    //     $communityId = getPermissionsTeamId();
+    //     $animals = Animal::query()
+    //         ->whereHas('premise', function ($q) use ($communityId) {
+    //             $q->where('community_id', $communityId);
+    //         })
+    //         ->get();
 
-        return response()->json(AnimalResource::collection($animals));
-    }
+    //     return response()->json(AnimalResource::collection($animals));
+    // }
 
     /**
      * Display a listing of the resource.
@@ -56,49 +58,63 @@ class AnimalController extends Controller
     public function index(Request $request)
     {
         $communityId = getPermissionsTeamId();
-
+        $since = $request->validate([
+            'since' => 'nullable|date_format:Y-m-d H:i:s',
+        ])['since'] ?? "1970-01-01 00:00:00";
         $animals = Animal::
-            where('community_id', $communityId)->
+            whereHas('premise', function ($q) use ($communityId) {
+                $q->where('community_id', $communityId);
+            })->
+            when($since, function ($query, $since) {
+                $query->where('updated_at', '>=', $since);
+            })->
             paginate();
 
-        return AnimalResource::collection($animals);
+        $resource = AnimalResource::collection($animals);
+        $result = $resource->response()->getData(true);
+        // si on est à la derniere page , on ajoute les last_synced_at
+        if ($animals->currentPage() >= $animals->lastPage()) {
+            $result['last_synced_at'] = now()->toDateTimeString();
+        }
+
+        return response()->json($result);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(AnimalRequest $request): JsonResponse
-    {
-        $animal = Animal::create($request->validated());
+    // /**
+    //  * Store a newly created resource in storage.
+    //  */
+    // public function store(AnimalRequest $request): JsonResponse
+    // {
+    //     $animal = Animal::create($request->validated());
 
-        return response()->json(new AnimalResource($animal));
-    }
+    //     return response()->json(new AnimalResource($animal));
+    // }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Animal $animal): JsonResponse
-    {
-        return response()->json(new AnimalResource($animal));
-    }
+    // /**
+    //  * Display the specified resource.
+    //  */
+    // public function show(Animal $animal): JsonResponse
+    // {
+    //     return response()->json(new AnimalResource($animal));
+    // }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(AnimalRequest $request, Animal $animal): JsonResponse
-    {
-        $animal->update($request->validated());
+    // /**
+    //  * Update the specified resource in storage.
+    //  */
+    // public function update(AnimalRequest $request, Animal $animal): JsonResponse
+    // {
+    //     $animal->update($request->validated());
 
-        return response()->json(new AnimalResource($animal));
-    }
+    //     return response()->json(new AnimalResource($animal));
+    // }
 
-    /**
-     * Delete the specified resource.
-     */
-    public function destroy(Animal $animal): Response
-    {
-        $animal->delete();
+    // /**
+    //  * Delete the specified resource.
+    //  */
+    // public function destroy(Animal $animal): Response
+    // {
+    //     $animal->delete();
 
-        return response()->noContent();
-    }
+    //     return response()->noContent();
+    // }
 }

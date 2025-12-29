@@ -9,13 +9,9 @@ use App\Models\WeightRecord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 
 class WeightRecordController extends Controller
 {
-
-
     public function getAllData(Request $request): JsonResponse
     {
         $weightRecords = WeightRecord::all();
@@ -24,13 +20,35 @@ class WeightRecordController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource (pull endpoint filtered by community).
      */
     public function index(Request $request)
     {
-        $weightRecords = WeightRecord::paginate();
+        $since = $request->validate([
+            'since' => 'nullable|date_format:Y-m-d H:i:s',
+        ])['since'] ?? "1970-01-01 00:00:00";
 
-        return WeightRecordResource::collection($weightRecords);
+        $query = WeightRecord::whereHas('event', function ($qe) {
+            $communityId = getPermissionsTeamId();
+            $qe->whereHas('animal', function ($q) use ($communityId) {
+                $q->whereHas('premise', function ($q2) use ($communityId) {
+                    $q2->where('community_id', $communityId);
+                });
+            });
+        })->when($since, function ($query, $since) {
+            $query->where(function ($q) use ($since) {
+                $q->where('created_at', '>=', $since)
+                    ->orWhere('updated_at', '>=', $since);
+            });
+        })->with('event')->paginate();
+
+        $resource = WeightRecordResource::collection($query);
+        $result = $resource->response()->getData(true);
+        if ($query->currentPage() >= $query->lastPage()) {
+            $result['last_synced_at'] = now()->toDateTimeString();
+        }
+
+        return response()->json($result);
     }
 
     /**

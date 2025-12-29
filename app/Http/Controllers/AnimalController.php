@@ -39,7 +39,11 @@ class AnimalController extends Controller
     public function index(Request $request): View
     {
         $q = $request->string('q')->toString();
-        $animals = Animal::query()
+        $communityId = getPermissionsTeamId();
+        $animals = Animal::query()->
+            whereHas('premise', function ($q) use ($communityId) {
+                $q->where('community_id', $communityId);
+            })
             ->search($q)
             ->orderByDesc('created_at')
             ->paginate()

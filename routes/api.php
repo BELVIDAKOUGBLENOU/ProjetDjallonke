@@ -4,19 +4,28 @@ use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\PersonController;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\PremiseController;
 use App\Http\Controllers\Api\VillageController;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\CommunityController;
+use App\Http\Controllers\Api\PersonRoleController;
+use App\Http\Controllers\Api\HealthEventController;
+use App\Http\Controllers\Api\MovementEventController;
+use App\Http\Controllers\Api\TransactionEventController;
+use App\Http\Controllers\Api\ReproductionEventController;
+use App\Http\Controllers\Api\BirthEventController;
+use App\Http\Controllers\Api\MilkRecordController;
+use App\Http\Controllers\Api\DeathEventController;
 use App\Http\Controllers\Api\SubDistrictController;
 use App\Http\Middleware\AccessDonneesCommunautaire;
 use App\Http\Controllers\Api\WeightRecordController;
+use App\Http\Controllers\Api\AnimalIdentifierController;
 use App\Http\Controllers\Api\PerformanceRecordController;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Middleware\SetCommunityContextAPI;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -30,10 +39,22 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 //FINI , ADMINISTRATION GLOBALE
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/pull/community', [CommunityController::class, 'index']);
     Route::get('/pull/countries', [CountryController::class, 'index']);
     Route::get('/pull/persons', [PersonController::class, 'index']);
     Route::get('/pull/premises', [PremiseController::class, 'index']);
     Route::get('/pull/animals', [AnimalController::class, 'index']);
+    Route::get('/pull/animals-identifiers', [AnimalIdentifierController::class, 'index']);
+    Route::get('/pull/person-roles', [PersonRoleController::class, 'index']);
+    Route::get('/pull/health-events', [HealthEventController::class, 'index']);
+    Route::get('/pull/movement-events', [MovementEventController::class, 'index']);
+    Route::get('/pull/transaction-events', [TransactionEventController::class, 'index']);
+    Route::get('/pull/reproduction-events', [ReproductionEventController::class, 'index']);
+    Route::get('/pull/birth-events', [BirthEventController::class, 'index']);
+    Route::get('/pull/milk-records', [MilkRecordController::class, 'index']);
+    Route::get('/pull/death-events', [DeathEventController::class, 'index']);
+    Route::get('/pull/weight-records', [WeightRecordController::class, 'index']);
+
     // Route::apiResource('api-countries', CountryController::class)->only(['index', 'show']);
     // Route::get('get-all-countries', [CountryController::class, 'getAllData']);
 
@@ -50,33 +71,33 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::middleware(['auth:sanctum', SetCommunityContextAPI::class])->group(function () {
+// Route::middleware(['auth:sanctum', SetCommunityContextAPI::class])->group(function () {
 
 
-    Route::apiResource('api-persons', PersonController::class)->only(['index',]);
+//     Route::apiResource('api-persons', PersonController::class)->only(['index',]);
 
-    Route::get('get-all-persons', [PersonController::class, 'getAllData']);
+//     Route::get('get-all-persons', [PersonController::class, 'getAllData']);
 
 
-    Route::get('get-all-animals', [AnimalController::class, 'getAllData']);
+//     Route::get('get-all-animals', [AnimalController::class, 'getAllData']);
 
-    Route::apiResource('api-premises', PremiseController::class);
-    Route::get('get-all-premises', [PremiseController::class, 'getAllData']);
-    Route::post('sync-premises', [PremiseController::class, 'syncPremises']);
-    // RESTE A FAIR
-    Route::apiResource('api-animals', AnimalController::class);
-    // add identifier
-// remove identifier
-//edit identifier
-});
+//     Route::apiResource('api-premises', PremiseController::class);
+//     Route::get('get-all-premises', [PremiseController::class, 'getAllData']);
+//     Route::post('sync-premises', [PremiseController::class, 'syncPremises']);
+//     // RESTE A FAIR
+//     Route::apiResource('api-animals', AnimalController::class);
+//     // add identifier
+// // remove identifier
+// //edit identifier
+// });
 // reste a faire
-Route::middleware('auth:sanctum')->group(function () {
+// Route::middleware('auth:sanctum')->group(function () {
 
 
-    Route::apiResource('api-performance-records', PerformanceRecordController::class);
-    Route::get('get-all-performance-records', [PerformanceRecordController::class, 'getAllData']);
+//     Route::apiResource('api-performance-records', PerformanceRecordController::class);
+//     Route::get('get-all-performance-records', [PerformanceRecordController::class, 'getAllData']);
 
-    Route::apiResource('api-weight-records', WeightRecordController::class);
-    Route::get('get-all-weight-records', [WeightRecordController::class, 'getAllData']);
+//     Route::apiResource('api-weight-records', WeightRecordController::class);
+//     Route::get('get-all-weight-records', [WeightRecordController::class, 'getAllData']);
 
-});
+// });

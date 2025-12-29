@@ -54,17 +54,31 @@ class WeightRecord {
       confirmedBy: json['confirmed_by'] as int?,
       animalId: json['animal_id'] as int?,
       source: json['source'] as String?,
-      eventDate: json['event_date'] == null ? null : DateTime.parse(json['event_date'] as String),
+      eventDate: json['event_date'] == null
+          ? null
+          : DateTime.parse(json['event_date'] as String),
       comment: json['comment'] as String?,
-      isConfirmed: json['is_confirmed'] == null ? null : (json['is_confirmed'] as bool),
+      isConfirmed:
+          json['is_confirmed'] == null ? null : (json['is_confirmed'] as bool),
       uid: json['uid'] as String?,
-      version: json['version'] is int ? json['version'] as int : (json['version'] != null ? int.tryParse(json['version'].toString()) : null),
-      weight: json['weight'] == null ? null : (json['weight'] as num).toDouble(),
+      version: json['version'] is int
+          ? json['version'] as int
+          : (json['version'] != null
+              ? int.tryParse(json['version'].toString())
+              : null),
+      weight:
+          json['weight'] == null ? null : (json['weight'] as num).toDouble(),
       ageDays: json['age_days'] as int?,
       measureMethod: json['measure_method'] as String?,
-      createdAt: json['created_at'] == null ? null : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null ? null : DateTime.parse(json['updated_at'] as String),
-      deletedAt: json['deleted_at'] == null ? null : DateTime.parse(json['deleted_at'] as String),
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
   }
 
