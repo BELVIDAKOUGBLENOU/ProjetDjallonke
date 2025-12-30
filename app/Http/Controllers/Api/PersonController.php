@@ -38,30 +38,13 @@ class PersonController extends Controller
         // Middleware pour permissions CRUD
         $table = Person::getTableName();
         // $this->middleware("permission:list $table")->only('index');
-        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
-        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:view $table")->only(['show', 'index']);
+        $this->middleware("permission:create $table")->only(['create', 'store', 'push']);
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
 
-    // public function getAllData(Request $request): JsonResponse
-    // {
-    //     $communityId = getPermissionsTeamId();
 
-    //     $persons = Person::query()
-    //         ->when($communityId, function ($query) use ($communityId) {
-    //             $query->whereHas('personRoles', function ($q) use ($communityId) {
-    //                 $q->whereHas('animal', function ($q) use ($communityId) {
-    //                     $q->whereHas('premise', function ($q) use ($communityId) {
-    //                         $q->where('community_id', $communityId);
-    //                     });
-    //                 });
-    //             });
-    //         })
-    //         ->get();
-
-    //     return response()->json(PersonResource::collection($persons));
-    // }
 
     /**
      * Display a listing of the resource.

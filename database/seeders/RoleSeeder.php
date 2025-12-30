@@ -73,6 +73,7 @@ class RoleSeeder extends Seeder
                 Person::class => ['list', 'view', 'create', 'update'],
                 Animal::class => ['list', 'view', 'create', 'update', 'delete'],
                 Premise::class => ['list', 'view', 'create', 'update',],
+
                 //evenements
             ],
             'VET' => [
