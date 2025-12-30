@@ -32,8 +32,8 @@ class CountryController extends Controller
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth');
-        $this->middleware(SetCommunityContextAPI::class);
+        // $this->middleware('auth');
+        // $this->middleware(SetCommunityContextAPI::class);
 
         // // Middleware pour permissions CRUD
         // $table = Country::getTableName();
