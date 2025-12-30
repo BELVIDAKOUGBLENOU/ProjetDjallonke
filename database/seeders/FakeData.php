@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Animal;
 use App\Models\Person;
 use App\Models\Premise;
+use App\Models\PersonRole;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -24,5 +25,8 @@ class FakeData extends Seeder
 
         // Seed Animals (will create AnimalIdentifiers)
         Animal::factory(20)->create();
+
+        // Seed PersonRoles linking persons and animals
+        PersonRole::factory(30)->create();
     }
 }

@@ -52,34 +52,60 @@ class PersonController extends Controller
     public function index(Request $request)
     {
         $communityId = getPermissionsTeamId();
-        $since = $request->validate([
-            'since' => 'nullable|date_format:Y-m-d H:i:s',
-        ])['since'] ?? "1970-01-01 00:00:00";
-        $persons = Person::query()
+
+        $validated = $request->validate([
+            'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'cursor.uid' => 'nullable|string',
+            'limit' => 'nullable|integer|min:1|max:200'
+        ]);
+
+        $limit = $validated['limit'] ?? 100;
+        $cursorUpdatedAt = $validated['cursor']['updated_at'] ?? null;
+        $cursorUid = $validated['cursor']['uid'] ?? null;
+
+        $query = Person::query()
             ->when($communityId, function ($query) use ($communityId) {
                 $query->whereHas('personRoles', function ($q) use ($communityId) {
                     $q->whereHas('animal', function ($q) use ($communityId) {
-                        $q->whereHas('premise', function ($q) use ($communityId) {
-                            $q->where('community_id', $communityId);
+                        $q->whereHas('premise', function ($q2) use ($communityId) {
+                            $q2->where('community_id', $communityId);
                         });
                     });
                 });
             })
-            ->when($since, function ($query) use ($since) {
-                $query->where(function ($q) use ($since) {
-                    $q->where('created_at', '>=', $since)
-                        ->orWhere('updated_at', '>=', $since);
-                });
-            })
-            ->paginate(100);
-        $resource = PersonResource::collection($persons);
-        $result = $resource->response()->getData(true);
-        // si on est à la derniere page , on ajoute les last_synced_at
-        if ($persons->currentPage() >= $persons->lastPage()) {
-            $result['last_synced_at'] = now()->toDateTimeString();
+            ->orderBy('updated_at')
+            ->orderBy('uid');
+
+        if ($cursorUpdatedAt && $cursorUid) {
+            $query->where(function ($q) use ($cursorUpdatedAt, $cursorUid) {
+                $q->where('updated_at', '>', $cursorUpdatedAt)
+                    ->orWhere(function ($q2) use ($cursorUpdatedAt, $cursorUid) {
+                        $q2->where('updated_at', $cursorUpdatedAt)
+                            ->where('uid', '>', $cursorUid);
+                    });
+            });
         }
 
-        return response()->json($result);
+        $items = $query->limit($limit + 1)->get();
+
+        $hasMore = $items->count() > $limit;
+        $items = $items->take($limit);
+
+        $nextCursor = null;
+        if ($items->isNotEmpty()) {
+            $last = $items->last();
+            $nextCursor = [
+                'updated_at' => $last->updated_at->toDateTimeString(),
+                'uid' => $last->uid
+            ];
+        }
+
+        return response()->json([
+            'data' => PersonResource::collection($items),
+            'cursor' => $nextCursor,
+            'has_more' => $hasMore,
+            'server_time' => now()->toDateTimeString()
+        ]);
     }
 
     function push(Request $request)
@@ -88,6 +114,7 @@ class PersonController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
+            'data.*.deleted_at' => 'nullable|date'
         ]);
 
         $applied = [];
@@ -118,8 +145,28 @@ class PersonController extends Controller
                 DB::beginTransaction();
                 $existing = Person::where('uid', $uid)->first();
 
+                if (!empty($personData['deleted_at'])) {
+                    if ($existing) {
+                        if ($personData['version'] <= $existing->version) {
+                            $conflicts[] = [
+                                'uid' => $uid,
+                                'server_data' => new PersonResource($existing)
+                            ];
+                            DB::rollBack();
+                            continue;
+                        }
+
+                        $existing->deleted_at = $personData['deleted_at'];
+                        $existing->version = $personData['version'];
+                        $existing->save();
+                    }
+
+                    $applied[] = $uid;
+                    DB::commit();
+                    continue;
+                }
+
                 if (!$existing) {
-                    // create new
                     $person = Person::create([
                         'uid' => $uid,
                         'version' => $personData['version'],
@@ -127,27 +174,25 @@ class PersonController extends Controller
                         'address' => $personData['address'] ?? null,
                         'phone' => $personData['phone'] ?? null,
                         'nationalId' => $personData['nationalId'] ?? null,
+                        'created_by' => auth()->id(),
                     ]);
                     $applied[] = $uid;
                     DB::commit();
                     continue;
                 }
 
-                // existing found: conflict resolution by version
                 $serverVersion = (int) ($existing->version ?? 0);
                 $clientVersion = (int) $personData['version'];
 
-                if ($serverVersion >= $clientVersion) {
-                    // server has newer data -> conflict
+                if ($clientVersion <= $serverVersion) {
                     $conflicts[] = [
                         'uid' => $uid,
-                        'server_data' => (new PersonResource($existing))->response()->getData(true)
+                        'server_data' => new PersonResource($existing)
                     ];
                     DB::rollBack();
                     continue;
                 }
 
-                // client is newer  -> apply update
                 $existing->fill([
                     'version' => $clientVersion,
                     'name' => $personData['name'] ?? $existing->name,
@@ -166,7 +211,7 @@ class PersonController extends Controller
                     'code' => 'UNIQUE_CONSTRAINT',
                     'message' => $qe->getMessage(),
                 ];
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 DB::rollBack();
                 $errors[] = [
                     'uid' => $uid,
@@ -177,10 +222,11 @@ class PersonController extends Controller
         }
 
         return response()->json([
-            'statut' => 'OK',
+            'status' => 'OK',
             'applied' => $applied,
             'conflicts' => $conflicts,
             'errors' => $errors,
+            'server_time' => now()->toDateTimeString()
         ]);
     }
 

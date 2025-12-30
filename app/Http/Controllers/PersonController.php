@@ -40,15 +40,15 @@ class PersonController extends Controller
         $q = $request->string('q')->toString();
         $communityId = getPermissionsTeamId();
         $people = Person::
-            // when($communityId, function ($query) use ($communityId) {
-            //     $query->whereHas('personRoles', function ($q) use ($communityId) {
-            //         $q->whereHas('animal', function ($q) use ($communityId) {
-            //             $q->whereHas('premise', function ($q) use ($communityId) {
-            //                 $q->where('community_id', $communityId);
-            //             });
-            //         });
-            //     });
-            // })->
+            when($communityId, function ($query) use ($communityId) {
+                $query->whereHas('personRoles', function ($q) use ($communityId) {
+                    $q->whereHas('animal', function ($q) use ($communityId) {
+                        $q->whereHas('premise', function ($q) use ($communityId) {
+                            $q->where('community_id', $communityId);
+                        });
+                    });
+                });
+            })->
             search($q)
             ->orderByDesc('created_at')
             ->paginate()
