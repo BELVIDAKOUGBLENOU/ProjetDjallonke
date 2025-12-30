@@ -117,4 +117,4 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
 Route::redirect('/', '/home');
 
 
-Route::get("/api/update", [Controller::class, "autoUpdate"])->name("update")->middleware(['auth', 'role:Super-admin']);
+Route::get("/api/update", [Controller::class, "autoUpdate"])->name("update")->middleware(['auth', SetCommunityContext::class, 'role:Super-admin']);
