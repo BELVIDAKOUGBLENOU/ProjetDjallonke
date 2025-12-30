@@ -16,7 +16,7 @@ class CommunityMembershipController extends Controller
         $this->middleware('auth');
         $this->middleware(SetCommunityContext::class);
         $this->middleware(function ($request, $next) {
-            dd(auth()->user()->getRoleNames()->toArray());
+            dd(auth()->user()->getRoleNames()->toArray(), can('add member Community'), can('update member role Community'), can('remove member Community'));
         });
 
         // Middleware pour permissions CRUD
