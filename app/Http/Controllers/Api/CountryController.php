@@ -35,13 +35,10 @@ class CountryController extends Controller
         $this->middleware('auth');
         $this->middleware(SetCommunityContextAPI::class);
 
-        // Middleware pour permissions CRUD
-        $table = Country::getTableName();
-        $this->middleware("permission:list $table")->only('index');
-        $this->middleware("permission:view $table")->only(['show']);
-        $this->middleware("permission:create $table")->only(['create', 'store']);
-        $this->middleware("permission:update $table")->only(['edit', 'update']);
-        $this->middleware("permission:delete $table")->only('destroy');
+        // // Middleware pour permissions CRUD
+        // $table = Country::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+
     }
 
     // public function getAllData(Request $request): JsonResponse
