@@ -22,7 +22,7 @@ class PersonRoleFactory extends Factory
             'version' => 1,
             'person_id' => $person->id,
             'animal_id' => $animal->id,
-            'role_type' => $this->faker->randomElement(['OWNER', 'BREEDER', 'CARETAKER']),
+            'role_type' => $this->faker->randomElement(['OWNER', 'DEALER', 'TRANSPORTER']),
         ];
     }
 }
