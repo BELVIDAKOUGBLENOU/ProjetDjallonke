@@ -9,6 +9,10 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AnimalRequest;
 use App\Http\Resources\AnimalResource;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
+use App\Models\Premise;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Middleware\SetCommunityContextAPI;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -118,3 +122,80 @@ class AnimalController extends Controller
     //     return response()->noContent();
     // }
 }
+
+    public function push(Request $request)
+    {
+        $request->validate([
+            'data' => 'required|array',
+            'data.*.uid' => 'required|string',
+            'data.*.version' => 'required|integer',
+        ]);
+
+        $applied = [];
+        $conflicts = [];
+        $errors = [];
+
+        foreach ($request->input('data', []) as $item) {
+            $uid = $item['uid'] ?? null;
+            try {
+                $validator = Validator::make($item, [
+                    'uid' => 'required|string',
+                    'version' => 'required|integer',
+                    'species' => 'nullable|string',
+                    'sex' => 'nullable|string',
+                    'birth_date' => 'nullable|date',
+                    'life_status' => 'nullable|string',
+                    'premise_uid' => 'nullable|string',
+                ]);
+
+                if ($validator->fails()) {
+                    $errors[] = ['uid' => $uid, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+                    continue;
+                }
+
+                DB::beginTransaction();
+                $existing = Animal::where('uid', $uid)->first();
+
+                if (!$existing) {
+                    $data = $validator->validated();
+                    if (!empty($data['premise_uid'])) {
+                        $prem = Premise::where('uid', $data['premise_uid'])->first();
+                        if ($prem) $data['premises_id'] = $prem->id;
+                        unset($data['premise_uid']);
+                    }
+                    $data['created_by'] = auth()->id();
+                    Animal::create($data + ['version' => $item['version']]);
+                    $applied[] = $uid;
+                    DB::commit();
+                    continue;
+                }
+
+                $serverVersion = (int) ($existing->version ?? 0);
+                $clientVersion = (int) $item['version'];
+                if ($clientVersion <= $serverVersion) {
+                    $conflicts[] = ['uid' => $uid, 'server_data' => (new AnimalResource($existing))->response()->getData(true)];
+                    DB::rollBack();
+                    continue;
+                }
+
+                $data = $validator->validated();
+                if (!empty($data['premise_uid'])) {
+                    $prem = Premise::where('uid', $data['premise_uid'])->first();
+                    if ($prem) $data['premises_id'] = $prem->id;
+                    unset($data['premise_uid']);
+                }
+                $existing->fill(array_merge($data, ['version' => $clientVersion]));
+                $existing->save();
+                $applied[] = $uid;
+                DB::commit();
+            } catch (QueryException $qe) {
+                DB::rollBack();
+                $errors[] = ['uid' => $uid, 'code' => 'UNIQUE_CONSTRAINT', 'message' => $qe->getMessage()];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $errors[] = ['uid' => $uid, 'code' => 'UNKNOWN_ERROR', 'message' => $e->getMessage()];
+            }
+        }
+
+        return response()->json(['statut' => 'OK', 'applied' => $applied, 'conflicts' => $conflicts, 'errors' => $errors]);
+    }

@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 //FINI , ADMINISTRATION GLOBALE
 Route::middleware('auth:sanctum')->group(function () {
+    //PULL
     Route::get('/pull/community', [CommunityController::class, 'index']);
     Route::get('/pull/countries', [CountryController::class, 'index']);
     Route::get('/pull/persons', [PersonController::class, 'index']);
@@ -54,7 +55,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pull/milk-records', [MilkRecordController::class, 'index']);
     Route::get('/pull/death-events', [DeathEventController::class, 'index']);
     Route::get('/pull/weight-records', [WeightRecordController::class, 'index']);
-
+    //PUSH
+    Route::get('/push/premises', [PremiseController::class, 'push']);
+    Route::get('/push/animals', [AnimalController::class, 'push']);
+    Route::get('/push/animals-identifiers', [AnimalIdentifierController::class, 'push']);
+    Route::post('/push/persons', [PersonController::class, 'push']);
+    Route::get('/push/animals-identifiers', [AnimalIdentifierController::class, 'push']);
+    Route::get('/push/person-roles', [PersonRoleController::class, 'push']);
+    Route::get('/push/health-events', [HealthEventController::class, 'push']);
+    Route::get('/push/movement-events', [MovementEventController::class, 'push']);
+    Route::get('/push/transaction-events', [TransactionEventController::class, 'push']);
+    Route::get('/push/reproduction-events', [ReproductionEventController::class, 'push']);
+    Route::get('/push/birth-events', [BirthEventController::class, 'push']);
+    Route::get('/push/milk-records', [MilkRecordController::class, 'push']);
+    Route::get('/push/death-events', [DeathEventController::class, 'push']);
+    Route::get('/push/weight-records', [WeightRecordController::class, 'push']);
     // Route::apiResource('api-countries', CountryController::class)->only(['index', 'show']);
     // Route::get('get-all-countries', [CountryController::class, 'getAllData']);
 

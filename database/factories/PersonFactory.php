@@ -17,6 +17,7 @@ class PersonFactory extends Factory
     public function definition(): array
     {
         return [
+            'uid' => fake()->unique()->uuid(),
             'name' => fake()->name(),
             'address' => fake()->address(),
             'phone' => fake()->phoneNumber(),

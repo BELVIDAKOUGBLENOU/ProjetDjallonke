@@ -20,6 +20,7 @@ class PremiseFactory extends Factory
     public function definition(): array
     {
         return [
+            'uid' => fake()->unique()->uuid(),
             'village_id' => Village::inRandomOrder()->first()->id ?? Village::factory(),
             'created_by' => User::inRandomOrder()->first()->id ?? User::factory(),
             'community_id' => Community::inRandomOrder()->first()->id ?? Community::factory(),

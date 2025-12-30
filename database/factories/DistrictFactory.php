@@ -19,7 +19,7 @@ class DistrictFactory extends Factory
     {
         return [
             'name' => fake()->city(),
-            'country_id' => Country::inRandomOrder()->first()->id ?? Country::factory(),
+            'country_id' => Country::where('is_active', '=', true)->inRandomOrder()->first()->id ?? Country::factory(),
         ];
     }
 }
