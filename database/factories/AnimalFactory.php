@@ -27,7 +27,7 @@ class AnimalFactory extends Factory
             'species' => fake()->randomElement(['CAPRINE', 'OVINE',]),
             'sex' => fake()->randomElement(['M', 'F']),
             'birth_date' => fake()->date(),
-            'life_status' => fake()->randomElement(['Alive', 'Dead', 'Sold']),
+            'life_status' => fake()->randomElement( ['ALIVE', 'DEAD', 'SOLD']),
         ];
     }
 

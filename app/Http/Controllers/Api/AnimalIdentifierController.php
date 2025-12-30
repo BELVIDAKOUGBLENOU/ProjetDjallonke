@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Models\Animal;
 use Illuminate\Http\Request;
 use App\Models\AnimalIdentifier;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
-use App\Models\Animal;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\AnimalIdentifierResource;
 
 class AnimalIdentifierController extends Controller
 {
@@ -19,24 +21,56 @@ class AnimalIdentifierController extends Controller
     public function index(Request $request): JsonResponse
     {
         $communityId = getPermissionsTeamId();
-        $since = $request->validate([
-            'since' => 'nullable|date_format:Y-m-d H:i:s',
-        ])['since'] ?? "1970-01-01 00:00:00";
 
-        $identifiers = AnimalIdentifier::whereHas('animal', function ($q) use ($communityId) {
-            $q->whereHas('premise', function ($q2) use ($communityId) {
-                $q2->where('community_id', $communityId);
+        $validated = $request->validate([
+            'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'cursor.uid' => 'nullable|string',
+            'limit' => 'nullable|integer|min:1|max:200'
+        ]);
+
+        $limit = $validated['limit'] ?? 100;
+        $cursorUpdatedAt = $validated['cursor']['updated_at'] ?? null;
+        $cursorUid = $validated['cursor']['uid'] ?? null;
+
+        $query = AnimalIdentifier::query()
+            ->whereHas('animal', function ($q) use ($communityId) {
+                $q->whereHas('premise', function ($q2) use ($communityId) {
+                    $q2->where('community_id', $communityId);
+                });
+            })
+            ->orderBy('updated_at')
+            ->orderBy('uid');
+
+        if ($cursorUpdatedAt && $cursorUid) {
+            $query->where(function ($q) use ($cursorUpdatedAt, $cursorUid) {
+                $q->where('updated_at', '>', $cursorUpdatedAt)
+                    ->orWhere(function ($q2) use ($cursorUpdatedAt, $cursorUid) {
+                        $q2->where('updated_at', $cursorUpdatedAt)
+                            ->where('uid', '>', $cursorUid);
+                    });
             });
-        })->when($since, function ($query, $since) {
-            $query->where('updated_at', '>=', $since);
-        })->paginate();
-
-        $result = $identifiers->toArray();
-        if ($identifiers->currentPage() >= $identifiers->lastPage()) {
-            $result['last_synced_at'] = now()->toDateTimeString();
         }
 
-        return response()->json($result);
+        $items = $query->limit($limit + 1)->get();
+
+        $hasMore = $items->count() > $limit;
+        $items = $items->take($limit);
+
+        $nextCursor = null;
+        if ($items->isNotEmpty()) {
+            $last = $items->last();
+            $nextCursor = [
+                'updated_at' => $last->updated_at->toDateTimeString(),
+                'uid' => $last->uid
+            ];
+        }
+
+        return response()->json([
+            'data' => AnimalIdentifierResource::collection($items),
+            'cursor' => $nextCursor,
+            'has_more' => $hasMore,
+            'server_time' => now()->toDateTimeString()
+        ]);
     }
 
     /**
@@ -86,80 +120,97 @@ class AnimalIdentifierController extends Controller
     {
         //
     }
-    public function push(Request $request)
+    public function push(Request $request): JsonResponse
     {
         $request->validate([
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
+            'data.*.deleted_at' => 'nullable|date'
         ]);
 
         $applied = [];
         $conflicts = [];
         $errors = [];
+        $user_id = Auth::user()->id;
 
-        foreach ($request->input('data', []) as $item) {
-            $uid = $item['uid'] ?? null;
+        foreach ($request->data as $item) {
+            DB::beginTransaction();
             try {
-                $validator = Validator::make($item, [
-                    'uid' => 'required|string',
-                    'version' => 'required|integer',
-                    'animal_uid' => 'required|string',
-                    'type' => 'nullable|string',
-                    'code' => 'nullable|string',
-                    'active' => 'nullable|boolean',
-                ]);
-
-                if ($validator->fails()) {
-                    $errors[] = ['uid' => $uid, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
-                    continue;
-                }
-
-                DB::beginTransaction();
-                $existing = AnimalIdentifier::where('uid', $uid)->first();
-                $animal = Animal::where('uid', $item['animal_uid'])->first();
+                $existing = AnimalIdentifier::where('uid', $item['uid'])->first();
+                $animal = Animal::where('uid', $item['animal_uid'] ?? null)->first();
                 if (!$animal) {
                     DB::rollBack();
-                    $errors[] = ['uid' => $uid, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
+                    $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
                     continue;
                 }
 
-                if (!$existing) {
-                    $data = $validator->validated();
-                    $data['animal_id'] = $animal->id;
-                    AnimalIdentifier::create(array_merge($data, ['version' => $item['version']]));
-                    $applied[] = $uid;
+                if (!empty($item['deleted_at'])) {
+                    if ($existing) {
+                        if ($item['version'] <= $existing->version) {
+                            $conflicts[] = [
+                                'uid' => $item['uid'],
+                                'server_data' => new AnimalIdentifierResource($existing)
+                            ];
+                            DB::rollBack();
+                            continue;
+                        }
+
+                        $existing->deleted_at = $item['deleted_at'];
+                        $existing->version = $item['version'];
+                        $existing->save();
+                    }
+
+                    $applied[] = $item['uid'];
                     DB::commit();
                     continue;
                 }
 
-                $serverVersion = (int) ($existing->version ?? 0);
-                $clientVersion = (int) $item['version'];
-                if ($clientVersion <= $serverVersion) {
-                    $conflicts[] = ['uid' => $uid, 'server_data' => $existing->toArray()];
+                if (!$existing) {
+                    $ai = new AnimalIdentifier();
+                    $ai->uid = $item['uid'];
+                    $ai->animal_id = $animal->id;
+                    $ai->type = $item['type'] ?? null;
+                    $ai->code = $item['code'] ?? null;
+                    $ai->active = $item['active'] ?? null;
+                    $ai->version = $item['version'];
+                    $ai->save();
+
+                    $applied[] = $item['uid'];
+                    DB::commit();
+                    continue;
+                }
+
+                if ($item['version'] <= $existing->version) {
+                    $conflicts[] = [
+                        'uid' => $item['uid'],
+                        'server_data' => new AnimalIdentifierResource($existing)
+                    ];
                     DB::rollBack();
                     continue;
                 }
 
-                $existing->fill([
-                    'animal_id' => $animal->id,
-                    'type' => $item['type'] ?? $existing->type,
-                    'code' => $item['code'] ?? $existing->code,
-                    'active' => $item['active'] ?? $existing->active,
-                    'version' => $clientVersion,
-                ]);
+                $existing->animal_id = $animal->id;
+                $existing->type = $item['type'] ?? $existing->type;
+                $existing->code = $item['code'] ?? $existing->code;
+                $existing->active = $item['active'] ?? $existing->active;
+                $existing->version = $item['version'];
                 $existing->save();
-                $applied[] = $uid;
+
+                $applied[] = $item['uid'];
                 DB::commit();
-            } catch (QueryException $qe) {
+            } catch (\Throwable $e) {
                 DB::rollBack();
-                $errors[] = ['uid' => $uid, 'code' => 'UNIQUE_CONSTRAINT', 'message' => $qe->getMessage()];
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $errors[] = ['uid' => $uid, 'code' => 'UNKNOWN_ERROR', 'message' => $e->getMessage()];
+                $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'SERVER_ERROR', 'message' => $e->getMessage()];
             }
         }
 
-        return response()->json(['statut' => 'OK', 'applied' => $applied, 'conflicts' => $conflicts, 'errors' => $errors]);
+        return response()->json([
+            'status' => 'OK',
+            'applied' => $applied,
+            'conflicts' => $conflicts,
+            'errors' => $errors,
+            'server_time' => now()->toDateTimeString()
+        ]);
     }
 }

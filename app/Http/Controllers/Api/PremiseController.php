@@ -9,7 +9,6 @@ use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\PremiseRequest;
@@ -60,69 +59,97 @@ class PremiseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $premises = Premise::
-            where("community_id", getPermissionsTeamId());
+        $communityId = getPermissionsTeamId();
 
-        $since = $request->validate([
-            'since' => 'nullable|date_format:Y-m-d H:i:s',
-        ])['since'] ?? "1970-01-01 00:00:00";
-        if ($since) {
-            $premises = $premises->where('updated_at', '>=', $since);
+        $validated = $request->validate([
+            'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'cursor.uid' => 'nullable|string',
+            'limit' => 'nullable|integer|min:1|max:200'
+        ]);
+
+        $limit = $validated['limit'] ?? 100;
+        $cursorUpdatedAt = $validated['cursor']['updated_at'] ?? null;
+        $cursorUid = $validated['cursor']['uid'] ?? null;
+
+        $query = Premise::query()
+            ->where('community_id', $communityId)
+            ->orderBy('updated_at')
+            ->orderBy('uid');
+
+        if ($cursorUpdatedAt && $cursorUid) {
+            $query->where(function ($q) use ($cursorUpdatedAt, $cursorUid) {
+                $q->where('updated_at', '>', $cursorUpdatedAt)
+                    ->orWhere(function ($q2) use ($cursorUpdatedAt, $cursorUid) {
+                        $q2->where('updated_at', $cursorUpdatedAt)
+                            ->where('uid', '>', $cursorUid);
+                    });
+            });
         }
 
-        $premises = $premises->paginate();
-        $resource = PremiseResource::collection($premises);
-        $result = $resource->response()->getData(true);
-        // si on est à la derniere page , on ajoute les last_synced_at
-        if ($premises->currentPage() >= $premises->lastPage()) {
-            $result['last_synced_at'] = now()->toDateTimeString();
+        $items = $query->limit($limit + 1)->get();
+
+        $hasMore = $items->count() > $limit;
+        $items = $items->take($limit);
+
+        $nextCursor = null;
+        if ($items->isNotEmpty()) {
+            $last = $items->last();
+            $nextCursor = [
+                'updated_at' => $last->updated_at->toDateTimeString(),
+                'uid' => $last->uid
+            ];
         }
 
-        return response()->json($result);
+        return response()->json([
+            'data' => PremiseResource::collection($items),
+            'cursor' => $nextCursor,
+            'has_more' => $hasMore,
+            'server_time' => now()->toDateTimeString()
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(PremiseRequest $request): JsonResponse
-    {
-        $all = $request->validated();
-        $all['community_id'] = getPermissionsTeamId();
-        $all['created_by'] = auth()->id();
-        $premise = Premise::create($all);
+    // public function store(PremiseRequest $request): JsonResponse
+    // {
+    //     $all = $request->validated();
+    //     $all['community_id'] = getPermissionsTeamId();
+    //     $all['created_by'] = auth()->id();
+    //     $premise = Premise::create($all);
 
-        return response()->json(new PremiseResource($premise));
-    }
+    //     return response()->json(new PremiseResource($premise));
+    // }
 
     /**
      * Display the specified resource.
      */
-    public function show(Premise $premise): JsonResponse
-    {
-        return response()->json(new PremiseResource($premise));
-    }
+    // public function show(Premise $premise): JsonResponse
+    // {
+    //     return response()->json(new PremiseResource($premise));
+    // }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(PremiseRequest $request, Premise $premise): JsonResponse
-    {
-        $premise->update($request->validated());
+    // /**
+    //  * Update the specified resource in storage.
+    //  */
+    // public function update(PremiseRequest $request, Premise $premise): JsonResponse
+    // {
+    //     $premise->update($request->validated());
 
-        return response()->json(new PremiseResource($premise));
-    }
+    //     return response()->json(new PremiseResource($premise));
+    // }
 
-    /**
-     * Delete the specified resource.
-     */
-    public function destroy(Premise $premise): Response
-    {
-        $premise->delete();
+    // /**
+    //  * Delete the specified resource.
+    //  */
+    // public function destroy(Premise $premise): Response
+    // {
+    //     $premise->delete();
 
-        return response()->noContent();
-    }
+    //     return response()->noContent();
+    // }
 
     // public function syncPremises(Request $request): JsonResponse
     // {
@@ -200,12 +227,13 @@ class PremiseController extends Controller
     //     ], 200);
     // }
 
-    public function push(Request $request)
+    public function push(Request $request): JsonResponse
     {
         $request->validate([
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
+            'data.*.deleted_at' => 'nullable|date'
         ]);
 
         $applied = [];
@@ -214,58 +242,92 @@ class PremiseController extends Controller
         $user_id = Auth::user()->id;
 
         $communityId = getPermissionsTeamId();
-        foreach ($request->input('data', []) as $item) {
-            $uid = $item['uid'] ?? null;
-            try {
-                $validator = Validator::make($item, [
-                    'uid' => 'required|string',
-                    'version' => 'required|integer',
-                    'village_id' => 'nullable|integer|exists:villages,id',
-                    'code' => 'required|string',
-                    'address' => 'nullable|string',
-                    'gps_coordinates' => 'nullable|string',
-                    'type' => 'nullable|string',
-                ]);
-                if ($validator->fails()) {
-                    $errors[] = ['uid' => $uid, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
-                    continue;
-                }
 
-                DB::beginTransaction();
-                $existing = Premise::where('uid', $uid)->first();
-                if (!$existing) {
-                    $data = $validator->validated();
-                    $data['community_id'] = $communityId;
-                    $data['created_by'] = $user_id;
-                    $data['version'] = $item['version'];
-                    Premise::create($data);
-                    $applied[] = $uid;
+        foreach ($request->data as $item) {
+            DB::beginTransaction();
+            try {
+                $existing = Premise::where('uid', $item['uid'])->first();
+
+                if (!empty($item['deleted_at'])) {
+                    if ($existing) {
+                        if ($item['version'] <= $existing->version) {
+                            $conflicts[] = [
+                                'uid' => $item['uid'],
+                                'server_data' => new PremiseResource($existing)
+                            ];
+                            DB::rollBack();
+                            continue;
+                        }
+
+                        $existing->deleted_at = $item['deleted_at'];
+                        $existing->version = $item['version'];
+                        $existing->save();
+                    }
+
+                    $applied[] = $item['uid'];
                     DB::commit();
                     continue;
                 }
 
-                $serverVersion = (int) ($existing->version ?? 0);
-                $clientVersion = (int) $item['version'];
-                if ($clientVersion <= $serverVersion) {
-                    $conflicts[] = ['uid' => $uid, 'server_data' => (new PremiseResource($existing))->response()->getData(true)];
+                if (!$existing) {
+                    $premise = new Premise();
+                    $premise->uid = $item['uid'];
+                    $data = [
+                        'village_id' => $item['village_id'] ?? null,
+                        'code' => $item['code'] ?? null,
+                        'address' => $item['address'] ?? null,
+                        'gps_coordinates' => $item['gps_coordinates'] ?? null,
+                        'type' => $item['type'] ?? null,
+                        'community_id' => $communityId,
+                        'created_by' => $user_id,
+                    ];
+                    $premise->fill($data);
+                    $premise->version = $item['version'];
+                    $premise->save();
+
+                    $applied[] = $item['uid'];
+                    DB::commit();
+                    continue;
+                }
+
+                if ($item['version'] <= $existing->version) {
+                    $conflicts[] = [
+                        'uid' => $item['uid'],
+                        'server_data' => new PremiseResource($existing)
+                    ];
                     DB::rollBack();
                     continue;
                 }
 
-                $existing->fill(array_merge($validator->validated(), ['version' => $clientVersion]));
+                $existing->fill([
+                    'village_id' => $item['village_id'] ?? $existing->village_id,
+                    'code' => $item['code'] ?? $existing->code,
+                    'address' => $item['address'] ?? $existing->address,
+                    'gps_coordinates' => $item['gps_coordinates'] ?? $existing->gps_coordinates,
+                    'type' => $item['type'] ?? $existing->type,
+                ]);
+                $existing->version = $item['version'];
                 $existing->save();
-                $applied[] = $uid;
+
+                $applied[] = $item['uid'];
                 DB::commit();
 
-            } catch (QueryException $qe) {
+            } catch (\Throwable $e) {
                 DB::rollBack();
-                $errors[] = ['uid' => $uid, 'code' => 'UNIQUE_CONSTRAINT', 'message' => $qe->getMessage()];
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $errors[] = ['uid' => $uid, 'code' => 'UNKNOWN_ERROR', 'message' => $e->getMessage()];
+                $errors[] = [
+                    'uid' => $item['uid'],
+                    'code' => 'SERVER_ERROR',
+                    'message' => $e->getMessage()
+                ];
             }
         }
 
-        return response()->json(['statut' => 'OK', 'applied' => $applied, 'conflicts' => $conflicts, 'errors' => $errors]);
+        return response()->json([
+            'status' => 'OK',
+            'applied' => $applied,
+            'conflicts' => $conflicts,
+            'errors' => $errors,
+            'server_time' => now()->toDateTimeString()
+        ]);
     }
 }

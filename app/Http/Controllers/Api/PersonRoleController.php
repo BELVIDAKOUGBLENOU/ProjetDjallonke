@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\PersonRole;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PersonRoleResource;
 use Illuminate\Support\Facades\Validator;
@@ -17,36 +18,59 @@ class PersonRoleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $communityId = getPermissionsTeamId();
-        $since = $request->validate([
-            'since' => 'nullable|date_format:Y-m-d H:i:s',
-        ])['since'] ?? "1970-01-01 00:00:00";
 
-        $roles = PersonRole::query()
-            ->when($communityId, function ($query) use ($communityId) {
-                $query->whereHas('animal', function ($q) use ($communityId) {
-                    $q->whereHas('premise', function ($q) use ($communityId) {
-                        $q->where('community_id', $communityId);
+        $validated = $request->validate([
+            'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'cursor.uid' => 'nullable|string',
+            'limit' => 'nullable|integer|min:1|max:200'
+        ]);
+
+        $limit = $validated['limit'] ?? 100;
+        $cursorUpdatedAt = $validated['cursor']['updated_at'] ?? null;
+        $cursorUid = $validated['cursor']['uid'] ?? null;
+
+        $query = PersonRole::query()
+            ->whereHas('animal', function ($q) use ($communityId) {
+                $q->whereHas('premise', function ($q2) use ($communityId) {
+                    $q2->where('community_id', $communityId);
+                });
+            })
+            ->orderBy('updated_at')
+            ->orderBy('uid');
+
+        if ($cursorUpdatedAt && $cursorUid) {
+            $query->where(function ($q) use ($cursorUpdatedAt, $cursorUid) {
+                $q->where('updated_at', '>', $cursorUpdatedAt)
+                    ->orWhere(function ($q2) use ($cursorUpdatedAt, $cursorUid) {
+                        $q2->where('updated_at', $cursorUpdatedAt)
+                            ->where('uid', '>', $cursorUid);
                     });
-                });
-            })
-            ->when($since, function ($query) use ($since) {
-                $query->where(function ($q) use ($since) {
-                    $q->where('created_at', '>=', $since)
-                        ->orWhere('updated_at', '>=', $since);
-                });
-            })
-            ->paginate();
-
-        $resource = PersonRoleResource::collection($roles);
-        $result = $resource->response()->getData(true);
-        if ($roles->currentPage() >= $roles->lastPage()) {
-            $result['last_synced_at'] = now()->toDateTimeString();
+            });
         }
 
-        return response()->json($result);
+        $items = $query->limit($limit + 1)->get();
+
+        $hasMore = $items->count() > $limit;
+        $items = $items->take($limit);
+
+        $nextCursor = null;
+        if ($items->isNotEmpty()) {
+            $last = $items->last();
+            $nextCursor = [
+                'updated_at' => $last->updated_at->toDateTimeString(),
+                'uid' => $last->uid
+            ];
+        }
+
+        return response()->json([
+            'data' => PersonRoleResource::collection($items),
+            'cursor' => $nextCursor,
+            'has_more' => $hasMore,
+            'server_time' => now()->toDateTimeString()
+        ]);
     }
 
     /**
@@ -98,21 +122,22 @@ class PersonRoleController extends Controller
     }
 
 
-    public function push(Request $request)
+    public function push(Request $request): JsonResponse
     {
 
         $request->validate([
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
+            'data.*.deleted_at' => 'nullable|date'
         ]);
 
         $applied = [];
         $conflicts = [];
         $errors = [];
 
-        foreach ($request->input('data', []) as $item) {
-            $uid = $item['uid'] ?? null;
+        foreach ($request->data as $item) {
+            DB::beginTransaction();
             try {
                 $validator = Validator::make($item, [
                     'uid' => 'required|string',
@@ -123,29 +148,47 @@ class PersonRoleController extends Controller
                 ]);
 
                 if ($validator->fails()) {
-                    $errors[] = ['uid' => $uid, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+                    $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+                    DB::rollBack();
                     continue;
                 }
 
-                DB::beginTransaction();
-                $existing = PersonRole::where('uid', $uid)->first();
+                $existing = PersonRole::where('uid', $item['uid'])->first();
                 $person = Person::where('uid', $item['person_uid'])->first();
                 $animal = Animal::where('uid', $item['animal_uid'])->first();
                 if (!$person || !$animal) {
                     DB::rollBack();
-                    $errors[] = ['uid' => $uid, 'code' => 'MISSING_RELATION', 'message' => 'Person or Animal not found'];
+                    $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Person or Animal not found'];
+                    continue;
+                }
+
+                if (!empty($item['deleted_at'])) {
+                    if ($existing) {
+                        if ($item['version'] <= $existing->version) {
+                            $conflicts[] = ['uid' => $item['uid'], 'server_data' => new PersonRoleResource($existing)];
+                            DB::rollBack();
+                            continue;
+                        }
+
+                        $existing->deleted_at = $item['deleted_at'];
+                        $existing->version = $item['version'];
+                        $existing->save();
+                    }
+
+                    $applied[] = $item['uid'];
+                    DB::commit();
                     continue;
                 }
 
                 if (!$existing) {
                     PersonRole::create([
-                        'uid' => $uid,
+                        'uid' => $item['uid'],
                         'version' => $item['version'],
                         'person_id' => $person->id,
                         'animal_id' => $animal->id,
                         'role_type' => $item['role_type'],
                     ]);
-                    $applied[] = $uid;
+                    $applied[] = $item['uid'];
                     DB::commit();
                     continue;
                 }
@@ -153,7 +196,7 @@ class PersonRoleController extends Controller
                 $serverVersion = (int) ($existing->version ?? 0);
                 $clientVersion = (int) $item['version'];
                 if ($clientVersion <= $serverVersion) {
-                    $conflicts[] = ['uid' => $uid, 'server_data' => (new PersonRoleResource($existing))->response()->getData(true)];
+                    $conflicts[] = ['uid' => $item['uid'], 'server_data' => new PersonRoleResource($existing)];
                     DB::rollBack();
                     continue;
                 }
@@ -165,17 +208,17 @@ class PersonRoleController extends Controller
                     'role_type' => $item['role_type'],
                 ]);
                 $existing->save();
-                $applied[] = $uid;
+                $applied[] = $item['uid'];
                 DB::commit();
             } catch (QueryException $qe) {
                 DB::rollBack();
-                $errors[] = ['uid' => $uid, 'code' => 'UNIQUE_CONSTRAINT', 'message' => $qe->getMessage()];
-            } catch (\Exception $e) {
+                $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'UNIQUE_CONSTRAINT', 'message' => $qe->getMessage()];
+            } catch (\Throwable $e) {
                 DB::rollBack();
-                $errors[] = ['uid' => $uid, 'code' => 'UNKNOWN_ERROR', 'message' => $e->getMessage()];
+                $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'SERVER_ERROR', 'message' => $e->getMessage()];
             }
         }
 
-        return response()->json(['statut' => 'OK', 'applied' => $applied, 'conflicts' => $conflicts, 'errors' => $errors]);
+        return response()->json(['status' => 'OK', 'applied' => $applied, 'conflicts' => $conflicts, 'errors' => $errors, 'server_time' => now()->toDateTimeString()]);
     }
 }
