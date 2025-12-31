@@ -13,9 +13,25 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\BirthEventResource;
+use App\Http\Middleware\SetCommunityContextAPI;
 
 class BirthEventController extends Controller
 {
+    public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+
+
+        // Middleware pour permissions CRUD
+        $table = BirthEvent::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
+    }
     public function index(Request $request): JsonResponse
     {
         $communityId = getPermissionsTeamId();
