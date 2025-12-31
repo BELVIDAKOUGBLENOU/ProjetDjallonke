@@ -103,7 +103,7 @@ class CountryController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->updated_at->toDateTimeString(),
-                'uid' => $last->id,
+                'uid' => (string) $last->id,
             ];
         }
 
