@@ -11,10 +11,26 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Resources\AnimalIdentifierResource;
 
 class AnimalIdentifierController extends Controller
 {
+    public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+
+
+        // Middleware pour permissions CRUD
+        $table = Animal::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
+    }
     /**
      * Display a listing of the resource.
      */
