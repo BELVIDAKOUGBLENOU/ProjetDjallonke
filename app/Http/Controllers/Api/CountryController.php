@@ -61,45 +61,61 @@ class CountryController extends Controller
      */
     public function index(Request $request)
     {
+        $imbriqued = $request->boolean('imbriqued', true);
 
-        $imbriqued = true;
-        $since = $request->validate([
-            'since' => 'nullable|date_format:Y-m-d H:i:s',
-        ])['since'] ?? "1970-01-01 00:00:00";
-        $countries = Country::where("is_active", true)
-            ->when($since, function ($countries) use ($since) {
-                $countries = $countries->where(function ($query) use ($since) {
-                    $query->where('created_at', '>=', $since)
-                        ->orWhere('updated_at', '>=', $since)
-                        ->orWhereHas('districts', function ($q) use ($since) {
-                            $q->where('created_at', '>=', $since)
-                                ->orWhere('updated_at', '>=', $since)
-                                ->orWhereHas('subDistricts', function ($q2) use ($since) {
-                                    $q2->where('created_at', '>=', $since)
-                                        ->orWhere('updated_at', '>=', $since)
-                                        ->orWhereHas('villages', function ($q3) use ($since) {
-                                            $q3->where('created_at', '>=', $since)
-                                                ->orWhere('updated_at', '>=', $since);
-                                        });
-                                });
-                        });
+        $validated = $request->validate([
+            'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'cursor.uid' => 'nullable',
+            'limit' => 'nullable|integer|min:1|max:200',
+        ]);
 
-                });
-            })->when($imbriqued, function ($countries) {
-                $countries = $countries->with('districts.subDistricts.villages');
-            })->paginate(5);
+        $limit = $validated['limit'] ?? 100;
+        $cursorUpdatedAt = $validated['cursor']['updated_at'] ?? null;
+        $cursorUid = $validated['cursor']['uid'] ?? null;
+        $cursorId = $cursorUid !== null ? (int) $cursorUid : null;
 
+        $query = Country::query()
+            ->where('is_active', true)
+            ->orderBy('updated_at')
+            ->orderBy('id');
 
-        $resource = CountryResource::collection($countries);
-        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
-
-        $result = $resource->response()->getData(true);
-        // si on est à la derniere page , on ajoute les last_synced_at
-        if ($countries->currentPage() >= $countries->lastPage()) {
-            $result['last_synced_at'] = now()->toDateTimeString();
+        if ($cursorUpdatedAt && $cursorId) {
+            $query->where(function ($q) use ($cursorUpdatedAt, $cursorId) {
+                $q->where('updated_at', '>', $cursorUpdatedAt)
+                    ->orWhere(function ($q2) use ($cursorUpdatedAt, $cursorId) {
+                        $q2->where('updated_at', $cursorUpdatedAt)
+                            ->where('id', '>', $cursorId);
+                    });
+            });
         }
 
-        return response()->json($result);
+        if ($imbriqued) {
+            $query->with('districts.subDistricts.villages');
+        }
+
+        $items = $query->limit($limit + 1)->get();
+
+        $hasMore = $items->count() > $limit;
+        $items = $items->take($limit);
+
+        $nextCursor = null;
+        if ($items->isNotEmpty()) {
+            $last = $items->last();
+            $nextCursor = [
+                'updated_at' => $last->updated_at->toDateTimeString(),
+                'uid' => $last->id,
+            ];
+        }
+
+        $resource = CountryResource::collection($items);
+        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
+
+        return response()->json([
+            'data' => $resource,
+            'cursor' => $nextCursor,
+            'has_more' => $hasMore,
+            'server_time' => now()->toDateTimeString(),
+        ]);
     }
 
     // /**
