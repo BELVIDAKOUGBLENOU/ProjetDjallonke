@@ -2,19 +2,35 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Animal;
+use App\Models\Person;
 use App\Models\PersonRole;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Controller;
-use App\Http\Resources\PersonRoleResource;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
-use App\Models\Person;
-use App\Models\Animal;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\PersonRoleResource;
+use App\Http\Middleware\SetCommunityContextAPI;
 
 class PersonRoleController extends Controller
 {
+    public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+
+
+        // Middleware pour permissions CRUD
+        $table = Person::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
+    }
     /**
      * Display a listing of the resource.
      */
