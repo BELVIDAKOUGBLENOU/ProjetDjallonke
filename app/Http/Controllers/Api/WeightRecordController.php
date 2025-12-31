@@ -15,9 +15,25 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\WeightRecordRequest;
 use App\Http\Resources\WeightRecordResource;
+use App\Http\Middleware\SetCommunityContextAPI;
 
 class WeightRecordController extends Controller
 {
+    public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+
+
+        // Middleware pour permissions CRUD
+        $table = WeightRecord::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
+    }
     public function getAllData(Request $request): JsonResponse
     {
         $weightRecords = WeightRecord::all();

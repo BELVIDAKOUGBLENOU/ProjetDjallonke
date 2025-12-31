@@ -6,17 +6,34 @@ use App\Models\Event;
 use App\Models\Animal;
 use App\Models\Premise;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Models\MovementEvent;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\MovementEventResource;
+use App\Http\Middleware\SetCommunityContextAPI;
 
 class MovementEventController extends Controller
 {
+
+    public function __construct()
+    {
+        // Middleware pour authentification
+        $this->middleware('auth:sanctum');
+        $this->middleware(SetCommunityContextAPI::class);
+
+
+        // Middleware pour permissions CRUD
+        $table = MovementEvent::getTableName();
+        // $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:view $table")->only(['show', 'getAllData']);
+        $this->middleware("permission:create $table")->only(['create', 'store']);
+        $this->middleware("permission:update $table")->only(['edit', 'update']);
+        $this->middleware("permission:delete $table")->only('destroy');
+    }
     /**
      * Display a listing of the resource.
      */
