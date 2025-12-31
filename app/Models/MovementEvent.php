@@ -34,4 +34,8 @@ class MovementEvent extends Model
     {
         return $this->belongsTo(Premise::class, 'to_premises_id');
     }
+    public static function getTableName()
+    {
+        return (new self)->getTable();
+    }
 }

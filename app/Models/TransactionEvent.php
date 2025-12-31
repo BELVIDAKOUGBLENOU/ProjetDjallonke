@@ -34,4 +34,8 @@ class TransactionEvent extends Model
     {
         return $this->belongsTo(Person::class, 'seller_id');
     }
+    public static function getTableName()
+    {
+        return (new self)->getTable();
+    }
 }
