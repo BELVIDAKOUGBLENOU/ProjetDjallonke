@@ -60,68 +60,98 @@ class CommunityController extends Controller
      */
     public function index(Request $request)
     {
-        $since = $request->validate([
-            'since' => 'nullable|date_format:Y-m-d H:i:s',
-        ])['since'] ?? "1970-01-01 00:00:00";
-        $communities = Community::
-            where(function ($query) {
+        $validated = $request->validate([
+            'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'cursor.uid' => 'nullable',
+            'limit' => 'nullable|integer|min:1|max:200',
+        ]);
+
+        $limit = $validated['limit'] ?? 100;
+        $cursorUpdatedAt = $validated['cursor']['updated_at'] ?? null;
+        $cursorUid = $validated['cursor']['uid'] ?? null;
+        $cursorId = $cursorUid !== null ? (int) $cursorUid : null;
+
+        $query = Community::query()
+            ->where(function ($query) {
                 $query->whereHas('members', function ($query) {
                     $query->where('users.id', auth()->id());
                 });
-            })->
-            when($since, function ($query, $since) {
-                $query->where(function ($q) use ($since) {
-                    $q->where('created_at', '>=', $since)
-                        ->orWhere('updated_at', '>=', $since);
-                });
             })
-            ->paginate();
-        $resource = CommunityResource::collection($communities);
-        $result = $resource->response()->getData(true);
-        if ($communities->currentPage() >= $communities->lastPage()) {
-            $result['last_synced_at'] = now()->toDateTimeString();
+            ->orderBy('updated_at')
+            ->orderBy('id');
+
+        if ($cursorUpdatedAt && $cursorId) {
+            $query->where(function ($q) use ($cursorUpdatedAt, $cursorId) {
+                $q->where('updated_at', '>', $cursorUpdatedAt)
+                    ->orWhere(function ($q2) use ($cursorUpdatedAt, $cursorId) {
+                        $q2->where('updated_at', $cursorUpdatedAt)
+                            ->where('id', '>', $cursorId);
+                    });
+            });
         }
-        return $result;
+
+        $items = $query->limit($limit + 1)->get();
+
+        $hasMore = $items->count() > $limit;
+        $items = $items->take($limit);
+
+        $nextCursor = null;
+        if ($items->isNotEmpty()) {
+            $last = $items->last();
+            $nextCursor = [
+                'updated_at' => $last->updated_at->toDateTimeString(),
+                'uid' => (string) $last->id,
+            ];
+        }
+
+        $resource = CommunityResource::collection($items);
+
+        return response()->json([
+            'data' => $resource,
+            'cursor' => $nextCursor,
+            'has_more' => $hasMore,
+            'server_time' => now()->toDateTimeString(),
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CommunityRequest $request): JsonResponse
-    {
-        $community = Community::create($request->validated());
+    // /**
+    //  * Store a newly created resource in storage.
+    //  */
+    // public function store(CommunityRequest $request): JsonResponse
+    // {
+    //     $community = Community::create($request->validated());
 
-        return response()->json(new CommunityResource($community));
-    }
+    //     return response()->json(new CommunityResource($community));
+    // }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $communityId): JsonResponse
-    {
-        $community = Community::findOrFail($communityId);
-        $community->load(['country', 'creator']);
-        // dd($community->toArray());
-        return response()->json(new CommunityResource($community));
-    }
+    // /**
+    //  * Display the specified resource.
+    //  */
+    // public function show(string $communityId): JsonResponse
+    // {
+    //     $community = Community::findOrFail($communityId);
+    //     $community->load(['country', 'creator']);
+    //     // dd($community->toArray());
+    //     return response()->json(new CommunityResource($community));
+    // }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(CommunityRequest $request, Community $community): JsonResponse
-    {
-        $community->update($request->validated());
+    // /**
+    //  * Update the specified resource in storage.
+    //  */
+    // public function update(CommunityRequest $request, Community $community): JsonResponse
+    // {
+    //     $community->update($request->validated());
 
-        return response()->json(new CommunityResource($community));
-    }
+    //     return response()->json(new CommunityResource($community));
+    // }
 
-    /**
-     * Delete the specified resource.
-     */
-    public function destroy(Community $community): Response
-    {
-        $community->delete();
+    // /**
+    //  * Delete the specified resource.
+    //  */
+    // public function destroy(Community $community): Response
+    // {
+    //     $community->delete();
 
-        return response()->noContent();
-    }
+    //     return response()->noContent();
+    // }
 }
