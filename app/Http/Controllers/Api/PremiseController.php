@@ -293,7 +293,8 @@ class PremiseController extends Controller
                 if ($item['version'] <= $existing->version) {
                     $conflicts[] = [
                         'uid' => $item['uid'],
-                        'server_data' => new PremiseResource($existing)
+                        'server_data' => new PremiseResource($existing),
+                        "local_data" => $item
                     ];
                     DB::rollBack();
                     continue;
