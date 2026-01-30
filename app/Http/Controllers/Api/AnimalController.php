@@ -341,7 +341,7 @@ class AnimalController extends Controller
             'sex' => $item['sex'] ?? null,
             'birth_date' => $item['birth_date'] ?? null,
             'life_status' => $item['life_status'] ?? null,
-            'sex' => !is_null($item['Sex']) ?? strtoupper(substr($item['sex'], 0, 1))
+            'sex' => !is_null($item['sex']) ? strtoupper(substr($item['sex'], 0, 1)) : null
         ];
 
         // Resolve premise_uid to premises_id
