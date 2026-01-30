@@ -327,5 +327,33 @@ class AnimalController extends Controller
         ]);
     }
 
+    /**
+     * Map the input data to the Animal model attributes.
+     *
+     * @param array $item
+     * @param int|string $communityId
+     * @return array
+     */
+    private function mapAnimalData(array $item, $communityId): array
+    {
+        $data = [
+            'species' => $item['species'] ?? null,
+            'sex' => $item['sex'] ?? null,
+            'birth_date' => $item['birth_date'] ?? null,
+            'life_status' => $item['life_status'] ?? null,
+        ];
 
+        // Resolve premise_uid to premises_id
+        if (!empty($item['premise_uid'])) {
+            $premise = Premise::where('uid', $item['premise_uid'])
+                ->where('community_id', $communityId)
+                ->first();
+
+            if ($premise) {
+                $data['premises_id'] = $premise->id;
+            }
+        }
+
+        return $data;
+    }
 }
