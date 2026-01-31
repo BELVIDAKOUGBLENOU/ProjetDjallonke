@@ -48,7 +48,7 @@ class CommunityResource extends JsonResource
         $this->loadMissing('country');
         $data['country'] = CountryResource::make($this->whenLoaded('country'));
         $data['uid'] = '' . $this->id;
-        $data['version'] = '1';
+        $data['version'] = 1;
         return $data;
     }
 }
