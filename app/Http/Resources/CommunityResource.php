@@ -18,7 +18,7 @@ class CommunityResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        unset($data['created_at'], $data['updated_at'], $data['created_by'], $data['updated_by']);
+        unset($data['created_by'], $data['updated_by']);
         if (!is_null($this->pivot)) {
             $user_id = $this->pivot->user_id ?? null;
             $community_id = $this->pivot->community_id ?? null;
@@ -48,6 +48,7 @@ class CommunityResource extends JsonResource
         $this->loadMissing('country');
         $data['country'] = CountryResource::make($this->whenLoaded('country'));
         $data['uid'] = '' . $this->id;
+        $data['version'] = '1';
         return $data;
     }
 }
