@@ -24,6 +24,7 @@ class CountryResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
+        $data["uid"] = '' . $this->id;
         if ($this->imbriqued) {
             $districts = $this->whenLoaded('districts');
             if (!$districts instanceof \Illuminate\Http\Resources\MissingValue) {
