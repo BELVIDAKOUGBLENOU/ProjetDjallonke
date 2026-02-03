@@ -17,7 +17,6 @@ class CountryResource extends JsonResource
     public function setImbriqued(bool $imbriqued): static
     {
         $this->imbriqued = $imbriqued;
-
         return $this;
     }
 
