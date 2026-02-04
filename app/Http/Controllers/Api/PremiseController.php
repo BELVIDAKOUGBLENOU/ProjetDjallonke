@@ -88,7 +88,8 @@ class PremiseController extends Controller
             });
         }
 
-        $items = $query->limit($limit + 1)->get();
+        $items = $query->limit($limit + 1)
+            ->with('keepers')->get();
 
         $hasMore = $items->count() > $limit;
         $items = $items->take($limit);

@@ -14,6 +14,13 @@ class PremiseResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        $data = parent::toArray($request);
+        $data['uid'] = '' . $this->id;
+        // unset($data['created_at'], $data['updated_at'], );
+        // append keepers if loaded
+        if ($this->relationLoaded('keepers')) {
+            $data['keepers'] = PremiseKeeperResource::collection($this->keepers);
+        }
+        return $data;
     }
 }
