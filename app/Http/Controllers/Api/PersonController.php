@@ -132,7 +132,7 @@ class PersonController extends Controller
                     'name' => 'required|string|max:255',
                     'address' => 'nullable|string|max:1000',
                     'phone' => 'nullable|string|max:50',
-                    'national_id' => 'required|string|max:100',
+                    'nationalId' => 'required|string|max:100',
                 ]);
 
                 if ($validator->fails()) {
