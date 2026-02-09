@@ -132,7 +132,7 @@ class PersonController extends Controller
                     'name' => 'required|string|max:255',
                     'address' => 'nullable|string|max:1000',
                     'phone' => 'nullable|string|max:50',
-                    'nationalId' => 'required|string|max:100',
+                    'national_id' => 'required|string|max:100',
                 ]);
 
                 if ($validator->fails()) {
@@ -175,7 +175,7 @@ class PersonController extends Controller
                         'name' => $personData['name'] ?? null,
                         'address' => $personData['address'] ?? null,
                         'phone' => $personData['phone'] ?? null,
-                        'nationalId' => $personData['nationalId'] ?? null,
+                        'nationalId' => $personData['national_id'] ?? null,
                         'created_by' => auth()->id(),
                     ]);
                     $applied[] = $uid;
