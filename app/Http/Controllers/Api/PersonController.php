@@ -6,12 +6,13 @@ use App\Models\Person;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PersonRequest;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
 use App\Http\Resources\PersonResource;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Middleware\SetCommunityContextAPI;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -110,6 +111,7 @@ class PersonController extends Controller
 
     function push(Request $request)
     {
+        Log::info("Received Data for pushing ", $request->all());
         $request->validate([
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
