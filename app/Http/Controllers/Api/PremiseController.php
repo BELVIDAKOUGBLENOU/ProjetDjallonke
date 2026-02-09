@@ -281,6 +281,7 @@ class PremiseController extends Controller
                         'type' => $item['type'] ?? null,
                         'community_id' => $communityId,
                         'created_by' => $user_id,
+                        'health_status' => $item['health_status'] ?? null,
                     ];
                     $premise->fill($data);
                     $premise->version = $item['version'];
