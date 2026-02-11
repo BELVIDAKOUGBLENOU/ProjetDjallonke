@@ -24,6 +24,10 @@ class Event extends Model
         'uid',
         'version'
     ];
+    //casts
+    protected $casts = [
+        'is_confirmed' => 'boolean'
+    ];
 
     public function creator()
     {
