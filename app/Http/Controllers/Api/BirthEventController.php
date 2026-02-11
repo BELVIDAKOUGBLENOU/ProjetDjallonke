@@ -131,7 +131,7 @@ class BirthEventController extends Controller
                         Rule::exists('animals', 'uid')
                             ->whereIn('premises_id', Premise::where('community_id', getPermissionsTeamId())->pluck('id'))
                     ],
-                    ,
+
 
 
 
