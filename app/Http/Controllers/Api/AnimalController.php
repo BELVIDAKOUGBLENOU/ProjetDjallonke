@@ -106,6 +106,7 @@ class AnimalController extends Controller
                 fn($q) =>
                 $q->where('community_id', $communityId)
             )
+            ->with('premise')
             ->orderBy('updated_at')
             ->orderBy('uid');
 

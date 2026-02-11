@@ -15,7 +15,7 @@ class AnimalResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        $data['premises_uid'] = '' . $this->premises_id;
+        $data['premises_uid'] = $this->premise ? $this->premise->uid : $this->resource->premise->uid;
         return $data;
     }
 }
