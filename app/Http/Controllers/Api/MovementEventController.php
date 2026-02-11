@@ -119,8 +119,8 @@ class MovementEventController extends Controller
                     'version' => 'required|integer',
                     'animal_uid' => 'required|string',
                     'event_date' => 'required|date',
-                    'from_premise_uid' => 'required|string',
-                    'to_premise_uid' => 'nullable|string|different:from_premise_uid',
+                    'from_premises_uid' => 'required|string',
+                    'to_premises_uid' => 'nullable|string|different:from_premises_uid',
                     'change_owner' => 'boolean',
                     'change_keeper' => 'boolean',
                 ]);
@@ -139,8 +139,8 @@ class MovementEventController extends Controller
                     continue;
                 }
 
-                $from = !empty($item['from_premise_uid']) ? Premise::where('uid', $item['from_premise_uid'])->first() : null;
-                $to = !empty($item['to_premise_uid']) ? Premise::where('uid', $item['to_premise_uid'])->first() : null;
+                $from = !empty($item['from_premises_uid']) ? Premise::where('uid', $item['from_premises_uid'])->first() : null;
+                $to = !empty($item['to_premises_uid']) ? Premise::where('uid', $item['to_premises_uid'])->first() : null;
 
                 if (!empty($item['deleted_at'])) {
                     if ($existingEvent) {
