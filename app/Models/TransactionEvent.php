@@ -19,7 +19,9 @@ class TransactionEvent extends Model
         'buyer_id',
         'seller_id',
     ];
-
+    protected $casts = [
+        'price' => 'float'
+    ];
     public function event()
     {
         return $this->belongsTo(Event::class);
