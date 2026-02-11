@@ -60,6 +60,7 @@ class MovementEventController extends Controller
                     });
                 });
             })
+            ->with('fromPremises', 'toPremises')
             ->select('movement_events.*')
             ->orderBy('events.updated_at')
             ->orderBy('events.uid');

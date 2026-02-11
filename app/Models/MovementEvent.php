@@ -25,12 +25,12 @@ class MovementEvent extends Model
         return $this->belongsTo(Event::class);
     }
 
-    public function fromPremise()
+    public function fromPremises()
     {
         return $this->belongsTo(Premise::class, 'from_premises_id');
     }
 
-    public function toPremise()
+    public function toPremises()
     {
         return $this->belongsTo(Premise::class, 'to_premises_id');
     }
