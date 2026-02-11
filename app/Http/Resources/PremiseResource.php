@@ -15,7 +15,7 @@ class PremiseResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        $data['uid'] = '' . $this->id;
+        // $data['uid'] = '' . $this->id;
         // unset($data['created_at'], $data['updated_at'], );
 
         if ($this->whenLoaded('keepers')) {
