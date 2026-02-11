@@ -247,6 +247,23 @@ class PremiseController extends Controller
         foreach ($request->data as $item) {
             DB::beginTransaction();
             try {
+                $validator = Validator::make($item, [
+                    'uid' => 'required|string',
+                    'version' => 'required|integer',
+                    'code' => 'required|string',
+                    'type' => 'required|string|in:FARM,MARKET,SLAUGHTERHOUSE,PASTURE,TRANSPORT',
+                    'village_id' => 'required|integer',
+                    'address' => 'nullable|string',
+                    'gps_coordinates' => 'nullable|string',
+                    'health_status' => 'nullable|string',
+                ]);
+
+                if ($validator->fails()) {
+                    $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+                    DB::rollBack();
+                    continue;
+                }
+
                 $existing = Premise::where('uid', $item['uid'])->first();
 
                 if (!empty($item['deleted_at'])) {

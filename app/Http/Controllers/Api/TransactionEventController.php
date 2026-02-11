@@ -113,6 +113,22 @@ class TransactionEventController extends Controller
         foreach ($request->data as $item) {
             DB::beginTransaction();
             try {
+                $validator = Validator::make($item, [
+                    'uid' => 'required|string',
+                    'version' => 'required|integer',
+                    'animal_uid' => 'required|string',
+                    'event_date' => 'required|date',
+                    'buyer_uid' => 'nullable|string',
+                    'seller_uid' => 'nullable|string',
+                    'price' => 'nullable|numeric',
+                ]);
+
+                if ($validator->fails()) {
+                    $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+                    DB::rollBack();
+                    continue;
+                }
+
                 $existingEvent = Event::where('uid', $item['uid'])->first();
                 $animal = Animal::where('uid', $item['animal_uid'] ?? null)->first();
                 $buyer = !empty($item['buyer_uid']) ? Person::where('uid', $item['buyer_uid'])->first() : null;

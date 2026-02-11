@@ -153,6 +153,20 @@ class AnimalIdentifierController extends Controller
         foreach ($request->data as $item) {
             DB::beginTransaction();
             try {
+                $validator = Validator::make($item, [
+                    'uid' => 'required|string',
+                    'version' => 'required|integer',
+                    'animal_uid' => 'required|string',
+                    'type' => 'required|string|in:VISUAL,BRAND,TATTOO,RFID_EAR_TAG,RFID_INJECTABLE,RFID_BOLUS',
+                    'code' => 'required|string',
+                ]);
+
+                if ($validator->fails()) {
+                    $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+                    DB::rollBack();
+                    continue;
+                }
+
                 $existing = AnimalIdentifier::where('uid', $item['uid'])->first();
                 $animal = Animal::where('uid', $item['animal_uid'] ?? null)->first();
                 if (!$animal) {

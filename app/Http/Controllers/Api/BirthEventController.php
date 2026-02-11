@@ -109,6 +109,20 @@ class BirthEventController extends Controller
         foreach ($request->data as $item) {
             DB::beginTransaction();
             try {
+                $validator = Validator::make($item, [
+                    'uid' => 'required|string',
+                    'version' => 'required|integer',
+                    'animal_uid' => 'required|string',
+                    'event_date' => 'required|date',
+                    'born_count' => 'nullable|integer',
+                ]);
+
+                if ($validator->fails()) {
+                    $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+                    DB::rollBack();
+                    continue;
+                }
+
                 $existingEvent = Event::where('uid', $item['uid'])->first();
                 $animal = Animal::where('uid', $item['animal_uid'] ?? null)->first();
                 if (!$animal) {

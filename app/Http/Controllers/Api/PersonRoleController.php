@@ -160,7 +160,7 @@ class PersonRoleController extends Controller
                     'version' => 'required|integer',
                     'person_uid' => 'required|string',
                     'animal_uid' => 'required|string',
-                    'role_type' => 'required|string',
+                    'role_type' => 'required|string|in:OWNER,DEALER,TRANSPORTER',
                 ]);
 
                 if ($validator->fails()) {
