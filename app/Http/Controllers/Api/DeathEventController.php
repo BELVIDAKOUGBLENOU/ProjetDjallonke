@@ -97,7 +97,7 @@ class DeathEventController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date|before_or_equal:now'
         ]);
 
         $applied = [];
@@ -113,7 +113,8 @@ class DeathEventController extends Controller
                     'version' => 'required|integer',
                     'animal_uid' => 'required|string',
                     'event_date' => 'required|date',
-                    'cause' => 'nullable|string',
+                    'cause' => 'required|string',
+                    'death_place' => 'required|string',
                 ]);
 
                 if ($validator->fails()) {
@@ -164,6 +165,7 @@ class DeathEventController extends Controller
                     DeathEvent::create([
                         'event_id' => $event->id,
                         'cause' => $item['cause'] ?? null,
+                        'death_place' => $item['death_place'] ?? null,
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
@@ -189,6 +191,7 @@ class DeathEventController extends Controller
 
                 $de = $existingEvent->deathEvent ?? new DeathEvent(['event_id' => $existingEvent->id]);
                 $de->cause = $item['cause'] ?? $de->cause;
+                $de->death_place = $item['death_place'] ?? $de->death_place;
                 $de->save();
 
                 $applied[] = $item['uid'];
