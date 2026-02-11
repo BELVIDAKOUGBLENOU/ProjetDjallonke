@@ -6,6 +6,7 @@ use App\Models\Animal;
 use App\Models\Premise;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -237,10 +238,39 @@ class AnimalController extends Controller
         $user_id = Auth::user()->id;
 
         foreach ($request->data as $item) {
+            $uid = $item['uid'] ?? null;
             DB::beginTransaction();
+            // validation des données de base
+            $validator = Validator::make($item, [
+                'uid' => 'required|string',
+                'version' => 'required|integer',
+                'sex' => 'required|string|in:M,F',
+                'species' => 'required|string|in:OVINE,CAPRINE',
+                'birth_date' => 'nullable|date',
+                'life_status' => 'required|string|in:ALIVE,DEAD,SOLD',
+                'premises_uid' => [
+                    'required',
+                    'string',
+                    Rule::exists('premises', 'uid')->where(function ($query) use ($communityId) {
+                        $query->where('community_id', $communityId);
+                    })
+                ],
+            ], [
+                'premises_uid.exists' => 'The specified premises does not exist in the community.'
+            ]);
+
+
+            if ($validator->fails()) {
+                $errors[] = [
+                    'uid' => $uid,
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => $validator->errors()->first()
+                ];
+                continue;
+            }
 
             try {
-                $existing = Animal::where('uid', $item['uid'])->first();
+                $existing = Animal::where('uid', $uid)->first();
 
                 /* =========================
                  * DELETE (soft delete)
@@ -344,9 +374,9 @@ class AnimalController extends Controller
             'sex' => !is_null($item['sex']) ? strtoupper(substr($item['sex'], 0, 1)) : null
         ];
 
-        // Resolve premise_uid to premises_id
-        if (!empty($item['premise_uid'])) {
-            $premise = Premise::where('uid', $item['premise_uid'])
+        // Resolve premises_uid to premises_id
+        if (!empty($item['premises_uid'])) {
+            $premise = Premise::where('uid', $item['premises_uid'])
                 ->where('community_id', $communityId)
                 ->first();
 
