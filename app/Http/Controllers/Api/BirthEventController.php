@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Event;
 use App\Models\Animal;
+use App\Models\Premise;
 use App\Models\BirthEvent;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -97,7 +99,7 @@ class BirthEventController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date|before_or_equal:now'
         ]);
 
         $applied = [];
@@ -114,13 +116,47 @@ class BirthEventController extends Controller
                     'version' => 'required|integer',
                     'animal_uid' => 'required|string',
                     'event_date' => 'required|date',
-                    'born_count' => 'nullable|integer',
+                    // 'born_count' => 'nullable|integer',
+                    'nb_alive' => 'required|integer|min:0',
+                    'nb_dead' => 'required|integer|min:0',
+                    'mother_uid' => [
+                        'nullable',
+                        'string',
+                        Rule::exists('animals', 'uid')
+                            ->whereIn('premises_id', Premise::where('community_id', getPermissionsTeamId())->pluck('id'))
+                    ],
+                    'father_uid' => [
+                        'nullable',
+                        'string',
+                        Rule::exists('animals', 'uid')
+                            ->whereIn('premises_id', Premise::where('community_id', getPermissionsTeamId())->pluck('id'))
+                    ],
+                    ,
+
+
+
+
+
                 ]);
 
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
                     continue;
+                }
+                $mother_id = null;
+                $father_id = null;
+                if (!empty($item['mother_uid'])) {
+                    $mother = Animal::where('uid', $item['mother_uid'])->first();
+                    if ($mother) {
+                        $mother_id = $mother->id;
+                    }
+                }
+                if (!empty($item['father_uid'])) {
+                    $father = Animal::where('uid', $item['father_uid'])->first();
+                    if ($father) {
+                        $father_id = $father->id;
+                    }
                 }
 
                 $existingEvent = Event::where('uid', $item['uid'])->first();
@@ -164,7 +200,10 @@ class BirthEventController extends Controller
                     ]);
                     BirthEvent::create([
                         'event_id' => $event->id,
-                        'born_count' => $item['born_count'] ?? null,
+                        'nb_alive' => $item['nb_alive'] ?? null,
+                        'nb_dead' => $item['nb_dead'] ?? null,
+                        'mother_id' => $mother_id,
+                        'father_id' => $father_id,
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
@@ -189,7 +228,15 @@ class BirthEventController extends Controller
                 $existingEvent->save();
 
                 $be = $existingEvent->birthEvent ?? new BirthEvent(['event_id' => $existingEvent->id]);
-                $be->born_count = $item['born_count'] ?? $be->born_count;
+                // $be->born_count = $item['born_count'] ?? $be->born_count;
+                $be->nb_alive = $item['nb_alive'] ?? $be->nb_alive;
+                $be->nb_dead = $item['nb_dead'] ?? $be->nb_dead;
+                if ($mother_id !== null) {
+                    $be->mother_id = $mother_id;
+                }
+                if ($father_id !== null) {
+                    $be->father_id = $father_id;
+                }
                 $be->save();
 
                 $applied[] = $item['uid'];
