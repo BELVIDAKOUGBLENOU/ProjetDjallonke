@@ -244,7 +244,7 @@ class AnimalController extends Controller
             $validator = Validator::make($item, [
                 'uid' => 'required|string',
                 'version' => 'required|integer',
-                'sex' => 'required|string|in:M,F',
+                'sex' => 'required|string|in:M,F,MALE,FEMALE',
                 'species' => 'required|string|in:OVINE,CAPRINE',
                 'birth_date' => 'nullable|date',
                 'life_status' => 'required|string|in:ALIVE,DEAD,SOLD',
