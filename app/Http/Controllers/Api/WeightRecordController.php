@@ -147,7 +147,7 @@ class WeightRecordController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date|before_or_equal:now'
         ]);
         $user_id = Auth::user()->id;
 
@@ -164,6 +164,8 @@ class WeightRecordController extends Controller
                     'animal_uid' => 'required|string',
                     'event_date' => 'required|date',
                     'weight' => 'required|numeric',
+                    'age_days' => 'required|integer',
+                    'measure_method' => 'required|string',
                 ]);
 
                 if ($validator->fails()) {
@@ -214,6 +216,8 @@ class WeightRecordController extends Controller
                     WeightRecord::create([
                         'event_id' => $event->id,
                         'weight' => $item['weight'] ?? null,
+                        'age_days' => $item['age_days'] ?? null,
+                        'measure_method' => $item['measure_method'] ?? null,
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
@@ -239,6 +243,8 @@ class WeightRecordController extends Controller
 
                 $wr = $existingEvent->weightRecord ?? new WeightRecord(['event_id' => $existingEvent->id]);
                 $wr->weight = $item['weight'] ?? $wr->weight;
+                $wr->age_days = $item['age_days'] ?? $wr->age_days;
+                $wr->measure_method = $item['measure_method'] ?? $wr->measure_method;
                 $wr->save();
 
                 $applied[] = $item['uid'];
