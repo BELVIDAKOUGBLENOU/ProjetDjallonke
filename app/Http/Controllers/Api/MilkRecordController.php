@@ -97,7 +97,7 @@ class MilkRecordController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date|before_or_equal:now'
         ]);
         $user_id = Auth::user()->id;
 
@@ -114,7 +114,9 @@ class MilkRecordController extends Controller
                     'animal_uid' => 'required|string',
                     'event_date' => 'required|date',
                     // Allow both comma and dot for decimals if needed, or just numeric.
-                    'milk' => 'required|numeric',
+                    // 'milk' => 'required|numeric',
+                    'volume_liters' => 'required|numeric|gt:0',
+                    'period' => 'required|string',
                 ]);
 
                 if ($validator->fails()) {
@@ -164,7 +166,8 @@ class MilkRecordController extends Controller
                     ]);
                     MilkRecord::create([
                         'event_id' => $event->id,
-                        'milk' => $item['milk'] ?? null,
+                        'volume_liters' => $item['volume_liters'] ?? null,
+                        'period' => $item['period'] ?? null,
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
@@ -189,7 +192,9 @@ class MilkRecordController extends Controller
                 $existingEvent->save();
 
                 $mr = $existingEvent->milkRecord ?? new MilkRecord(['event_id' => $existingEvent->id]);
-                $mr->milk = $item['milk'] ?? $mr->milk;
+                // $mr->milk = $item['milk'] ?? $mr->milk;
+                $mr->volume_liters = $item['volume_liters'] ?? null;
+                $mr->period = $item['period'] ?? null;
                 $mr->save();
 
                 $applied[] = $item['uid'];
