@@ -69,7 +69,7 @@ class RemoteAuthController extends Controller
     {
         $url = request()->get('redirect_uri') ?? request()->get('redirect_to');
         $isMobileLink = !str_starts_with($url, 'http');
-        dd('Mobile Link: ' . ($isMobileLink ? 'Yes' : 'No') . ' | URL: ' . $url);
+        // dd('Mobile Link: ' . ($isMobileLink ? 'Yes' : 'No') . ' | URL: ' . $url);
         if ($url) {
             Session::put('redirect_to', $url);
         }
