@@ -12,6 +12,7 @@ class Premise extends Model
     use HasFactory;
     use SoftDeletes;
 
+    const TYPES = ['FARM', 'MARKET', 'SLAUGHTERHOUSE', 'PASTURE', 'TRANSPORT'];
 
     protected $fillable = [
         'village_id',

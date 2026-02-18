@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\PersonRole;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration {
 
             $table->foreignId('person_id')->constrained('persons')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->enum('role_type', ['OWNER', 'DEALER', 'TRANSPORTER']);
+            $table->enum('role_type', PersonRole::ROLE_TYPES);
             $table->timestamps();
             $table->softDeletes();
         });

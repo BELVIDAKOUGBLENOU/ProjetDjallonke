@@ -39,7 +39,7 @@ class RemoteAuthController extends Controller
         if (self::isRedirectionAvailable()) {
             // 2. Génération du Token Stateless (pour Flutter ET VueJS)
             $tokenName = $isMobileLink ? 'MobileToken' : 'WebToken';
-            $token = $user->createToken($tokenName)->plainTextToken;
+            $token = $user->createToken($tokenName. " session_id:". session()->getId())->plainTextToken;
 
             // 3. Construction de l'URL finale avec le token
             $separator = str_contains($redirectTo, '?') ? '&' : '?';
@@ -69,7 +69,6 @@ class RemoteAuthController extends Controller
     {
         $url = request()->get('redirect_uri') ?? request()->get('redirect_to');
         $isMobileLink = !str_starts_with($url, 'http');
-        // dd('Mobile Link: ' . ($isMobileLink ? 'Yes' : 'No') . ' | URL: ' . $url);
         if ($url) {
             Session::put('redirect_to', $url);
         }

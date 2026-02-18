@@ -14,6 +14,8 @@ use App\Models\Village;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use App\Models\Event;
 
 class RoleSeeder extends Seeder
 {
@@ -34,6 +36,11 @@ class RoleSeeder extends Seeder
         }
 
         $roles = [
+            'Super-admin' => [
+                Role::class => ['list', 'view', 'create', 'update', 'delete'], // This is just a placeholder, Super-admin will get all permissions anyway
+                User::class => ['list', 'view', 'create', 'update', 'delete'],
+                Permission::class => ['list', 'view', 'create', 'update', 'delete'],
+            ], // All permissions are automatically assigned to Super-admin
             'Administrateur' => [
                 User::class => ['list', 'view', 'create', 'update', 'delete'],
                 Country::class => ['list', 'view', 'create', 'update', 'delete'],
@@ -45,9 +52,10 @@ class RoleSeeder extends Seeder
                 Premise::class => ['list', 'view', 'create', 'update', 'delete'],
                 Person::class => ['list', 'view', 'create', 'update', 'delete'],
                 Animal::class => ['list', 'view', 'create', 'update', 'delete'],
+                Event::class => ['list', 'view', 'create', 'update', 'delete'],
             ],
             'COMMUNITY_ADMIN' => [
-                Community::class => ['view', 'add member', 'remove member', 'update member role'],
+                Community::class => ['list', 'view', 'add member', 'remove member', 'update member role'],
                 Premise::class => ['list', 'view', 'create', 'update', 'delete'],
                 Country::class => ['list', 'view'],
                 District::class => ['list', 'view'],
@@ -55,6 +63,7 @@ class RoleSeeder extends Seeder
                 Village::class => ['list', 'view'],
                 Person::class => ['list', 'view', 'create', 'update'],
                 Animal::class => ['list', 'view', 'create', 'update', 'delete'],
+                Event::class => ['list', 'view', 'create', 'update', 'delete'],
             ],
             'FARMER' => [
                 Community::class => ['list', 'view',],

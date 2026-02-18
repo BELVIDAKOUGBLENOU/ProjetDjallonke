@@ -12,6 +12,13 @@ class Event extends Model
     use HasFactory;
     use SoftDeletes;
 
+    const SOURCES = ['COMMUNITY_ADMIN', 'FARMER', 'TECHNICIAN'];
+
+    public static function getTableName()
+    {
+        return with(new static)->getTable();
+    }
+
     protected $fillable = [
 
         'created_by',

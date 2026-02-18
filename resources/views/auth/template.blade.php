@@ -33,7 +33,7 @@
         <a href="/" class="flex items-center gap-2  font-semibold">
             {{-- <i class="ti ti-brand-laravel text-red-500 text-2xl"></i> --}}
             <img src="{{ asset('logo-dh.svg') }}" style="max-height: 25px;" alt="">
-            <span class="text-nowrap">{{ config('app.name', 'D-HARVEST') }}</span>
+            <span class="text-nowrap">{{ config('app.name', 'DJALLONKE') }}</span>
         </a>
 
         <!-- Right: Theme Toggle -->

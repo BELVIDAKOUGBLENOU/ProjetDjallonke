@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Event;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -20,7 +21,7 @@ return new class extends Migration {
             $table->foreignId('confirmed_by')->nullable()->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
             $table->foreignId('animal_id')->constrained('animals')->restrictOnDelete()->cascadeOnUpdate();
 
-            $table->enum('source', ['COMMUNITY_ADMIN', 'FARMER', 'TECHNICIAN']);
+            $table->enum('source', Event::SOURCES);
             $table->date('event_date');
             $table->text('comment')->nullable();
             $table->boolean('is_confirmed')->default(false);

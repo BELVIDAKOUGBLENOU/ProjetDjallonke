@@ -6,6 +6,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -23,11 +24,12 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Les identifiants fournis sont incorrects.'],
             ]);
         }
+
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -40,8 +42,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $at = $request->user()->currentAccessToken();
+        $tokenName = $at->name;
 
+        $parts = explode(' session_id:', $tokenName);
+
+        if (count($parts) === 2) {
+            $session_id = $parts[1];
+            DB::table('sessions')->where('id', $session_id)->delete();
+        }
+
+        $at->delete();
         return response()->json(['message' => 'Déconnexion réussie']);
     }
 

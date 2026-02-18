@@ -41,7 +41,9 @@ class Country extends Model
         $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
         // Adjust searchable columns after generation if necessary
         $columns = array_filter([
-            // Example: 'name', 'title', 'slug'
+            'name',
+            'code_iso',
+            'emoji'
         ]);
         if (empty($columns)) {
             return $query; // No columns defined; user will customize.

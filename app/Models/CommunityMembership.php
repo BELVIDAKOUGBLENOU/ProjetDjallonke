@@ -10,6 +10,7 @@ class CommunityMembership extends Model
     /** @use HasFactory<\Database\Factories\CommunityMembershipFactory> */
     use HasFactory;
 
+    const ROLES = ['COMMUNITY_ADMIN', 'FARMER', 'VET', 'TECHNICIAN', 'RESEARCHER'];
     protected $fillable = ['community_id', 'user_id', 'role', 'added_at'];
 
     public function community()

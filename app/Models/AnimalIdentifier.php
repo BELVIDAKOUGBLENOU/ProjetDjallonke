@@ -12,6 +12,8 @@ class AnimalIdentifier extends Model
     use HasFactory;
     use SoftDeletes;
 
+    const TYPES = ['VISUAL', 'BRAND', 'TATTOO', 'RFID_EAR_TAG', 'RFID_INJECTABLE', 'RFID_BOLUS'];
+
     protected $fillable = ['animal_id', 'type', 'code', 'active', 'uid', 'version'];
 
     protected $casts = [

@@ -10,6 +10,8 @@ class ReproductionEvent extends Model
     /** @use HasFactory<\Database\Factories\ReproductionEventFactory> */
     use HasFactory;
 
+    const REPRO_TYPES = ['MATING', 'AI', 'DIAGNOSIS'];
+
     public $timestamps = false;
 
     protected $fillable = [

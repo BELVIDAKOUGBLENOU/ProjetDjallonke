@@ -12,6 +12,9 @@ class Animal extends Model
     use HasFactory;
     use SoftDeletes;
 
+    const SPECIES = ['OVINE', 'CAPRINE'];
+    const SEXES = ['M', 'F'];
+    const LIFE_STATUSES = ['ALIVE', 'DEAD', 'SOLD'];
 
     protected $fillable = [
 
@@ -21,7 +24,8 @@ class Animal extends Model
         'sex',
         'birth_date',
         'life_status',
-        'uid', 'version'
+        'uid',
+        'version'
     ];
     public function scopeSearch($query, ?string $term)
     {

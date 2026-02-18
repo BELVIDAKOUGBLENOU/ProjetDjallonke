@@ -22,6 +22,7 @@ class SetCommunityContext
         // Vérifie si l'utilisateur a au moins un rôle global (team 0)
         $hasGlobalRole = false;
         if ($user) {
+            $originalTeamId = getPermissionsTeamId();
             setPermissionsTeamId(0);
             $hasGlobalRole = DB::table('model_has_roles')
                 ->where('model_type', get_class($user))
@@ -29,7 +30,7 @@ class SetCommunityContext
                 ->where('community_id', 0)
                 ->exists();
             // dd($hasGlobalRole);
-            setPermissionsTeamId(null);
+            setPermissionsTeamId($originalTeamId);
         }
         if ($hasGlobalRole) {
             session(['selected_community' => 0]);

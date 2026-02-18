@@ -12,6 +12,8 @@ class PersonRole extends Model
     use HasFactory;
     use SoftDeletes;
 
+    const ROLE_TYPES = ['OWNER', 'DEALER', 'TRANSPORTER'];
+
     protected $fillable = [
         'person_id',
         'animal_id',

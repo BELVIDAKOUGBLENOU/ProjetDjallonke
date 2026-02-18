@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AnimalIdentifier;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration {
 
 
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->enum('type', ['VISUAL', 'BRAND', 'TATTOO', 'RFID_EAR_TAG', 'RFID_INJECTABLE', 'RFID_BOLUS']);
+            $table->enum('type', AnimalIdentifier::TYPES);
             $table->string('code');
             $table->boolean('active')->default(true);
             $table->unique(['animal_id', 'type']);

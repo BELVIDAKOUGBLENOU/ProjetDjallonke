@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo-dh.svg') }}" />
     {{-- for social media --}}
     <meta property="og:title" content="@yield('pageTitle', config('app.name', ''))" />
-    <meta property="og:description" content="@yield('pageDescription', 'Un logiciel pour le suivi du ciment - D-HARVEST')" />
+    <meta property="og:description" content="@yield('pageDescription', 'DJALLONKE')" />
     <meta property="og:image" content="{{ asset('logo-dh.svg') }}" />
     <meta property="og:url" content="{{ url()->current() }}" />
     <meta name="twitter:card" content="summary_large_image" />

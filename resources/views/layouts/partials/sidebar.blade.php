@@ -6,7 +6,7 @@
     <div class="flex h-16 items-center justify-between border-b theme-divider px-6">
         <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold theme-title">
             <img src="{{ asset('logo-dh.svg') }}" style="max-height: 20px;" alt="">
-            <span class="text-nowrap">{{ config('app.name', 'D-HARVEST') }}</span>
+            <span class="text-nowrap">{{ config('app.name', 'DJALLONKE') }}</span>
 
         </a>
         <button onclick="window.__toggleSidebar()" class="theme-muted-text hover-theme-muted rounded-lg p-2 lg:hidden">

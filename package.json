@@ -9,7 +9,7 @@
     "devDependencies": {
         "@popperjs/core": "^2.11.6",
         "@tailwindcss/vite": "^4.0.0",
-        "axios": "^1.11.0",
+        "axios": "^1.13.5",
         "bootstrap": "^5.2.3",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",
@@ -21,6 +21,7 @@
         "@tabler/icons-webfont": "^3.26.0",
         "@vitejs/plugin-vue": "^6.0.3",
         "alpinejs": "^3.15.2",
+        "dayjs": "^1.11.19",
         "jquery": "^3.7.1",
         "pinia": "^3.0.4",
         "select2": "^4.1.0-rc.0",

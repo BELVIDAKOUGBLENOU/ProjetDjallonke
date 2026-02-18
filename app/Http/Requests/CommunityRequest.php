@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Orion\Http\Requests\Request;
 
-class CommunityRequest extends FormRequest
+class CommunityRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,6 +21,10 @@ class CommunityRequest extends FormRequest
      */
     public function rules(): array
     {
+        if ($this->isMethod('GET')) {
+            return [];
+        }
+
         return [
             'name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',

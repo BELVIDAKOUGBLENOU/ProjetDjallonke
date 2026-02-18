@@ -23,13 +23,8 @@ class AnimalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'uid' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('animals', 'uid')->ignore($this->animal),
-            ],
-            'created_by' => 'required|exists:users,id',
+            // 'uid' is generated on backend
+            // 'created_by' is handled by backend
             'premises_id' => 'required|exists:premises,id',
             'species' => 'required|string|max:255',
             'sex' => 'required|string|max:255',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Animal;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,10 +18,10 @@ return new class extends Migration {
 
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
             $table->foreignId('premises_id')->constrained('premises')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->enum('species', ['OVINE', 'CAPRINE']);
-            $table->enum('sex', ['M', 'F']);
+            $table->enum('species', Animal::SPECIES);
+            $table->enum('sex', Animal::SEXES);
             $table->date('birth_date')->nullable();
-            $table->enum('life_status', ['ALIVE', 'DEAD', 'SOLD']);
+            $table->enum('life_status', Animal::LIFE_STATUSES);
 
             $table->timestamps();
             $table->softDeletes();

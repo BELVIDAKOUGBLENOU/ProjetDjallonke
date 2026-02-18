@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Premise;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -22,7 +23,7 @@ return new class extends Migration {
             $table->string('code')->unique();
             $table->string('address');
             $table->string('gps_coordinates')->nullable();
-            $table->enum('type', ['FARM', 'MARKET', 'SLAUGHTERHOUSE', 'PASTURE', 'TRANSPORT']);
+            $table->enum('type', Premise::TYPES);
             $table->string('health_status')->nullable();
 
             $table->timestamps();

@@ -10,6 +10,8 @@ class PerformanceTrait extends Model
     /** @use HasFactory<\Database\Factories\PerformanceTraitFactory> */
     use HasFactory;
 
+    const TRAIT_TYPES = ['MILK', 'WEIGHT', 'FERTILITY', 'SURVIVAL'];
+
     protected $fillable = [
         'performance_record_id',
         'trait_type',

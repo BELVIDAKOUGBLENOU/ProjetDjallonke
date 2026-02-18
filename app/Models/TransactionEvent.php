@@ -10,6 +10,8 @@ class TransactionEvent extends Model
     /** @use HasFactory<\Database\Factories\TransactionEventFactory> */
     use HasFactory;
 
+    const TRANSACTION_TYPES = ['SALE', 'PURCHASE', 'DONATION'];
+
     public $timestamps = false;
 
     protected $fillable = [
