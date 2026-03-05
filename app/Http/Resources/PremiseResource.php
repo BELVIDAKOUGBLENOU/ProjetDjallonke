@@ -30,6 +30,11 @@ class PremiseResource extends JsonResource
         } else {
             $data['village'] = null;
         }
+
+        if (array_key_exists('animals_count', $this->attributesToArray())) {
+            $data['animals_count'] = $this->animals_count;
+        }
+
         return $data;
     }
 }

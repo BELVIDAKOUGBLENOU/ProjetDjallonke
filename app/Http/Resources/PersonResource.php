@@ -14,6 +14,16 @@ class PersonResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        $data = parent::toArray($request);
+
+        if (array_key_exists('owned_animals_count', $this->attributesToArray())) {
+            $data['owned_animals_count'] = $this->owned_animals_count;
+        }
+
+        if (array_key_exists('related_animals_count', $this->attributesToArray())) {
+            $data['related_animals_count'] = $this->related_animals_count;
+        }
+
+        return $data;
     }
 }

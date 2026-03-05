@@ -40,6 +40,10 @@ class Animal extends Model
                 ->orWhere('birth_date', 'like', $like)
                 ->orWhereHas('identifiers', function ($query) use ($like) {
                     $query->where('code', 'like', $like);
+                })->orWhereHas('personRoles.person', function ($query) use ($like) {
+                    $query->where('name', 'like', $like)
+                        ->orWhere('nationalId', 'like', $like)
+                        ->orWhere('phone', 'like', $like);
                 });
         });
     }

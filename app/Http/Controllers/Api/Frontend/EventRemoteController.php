@@ -9,6 +9,8 @@ use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\EventsExport;
 
 class EventRemoteController extends Controller
 {
@@ -141,6 +143,20 @@ class EventRemoteController extends Controller
             'weight_record' => (clone $baseQuery)->has('weightRecord')->count(),
             'death_event' => (clone $baseQuery)->has('deathEvent')->count(),
         ]);
+    }
+
+    public function export(Request $request)
+    {
+        $communityId = getPermissionsTeamId();
+        $filters = $request->only(['q', 'status', 'type']);
+
+        if (empty($filters['type'])) {
+            return response()->json(['message' => 'Type is required'], 422);
+        }
+
+        $export = new EventsExport($filters, $communityId);
+
+        return Excel::download($export, 'events_export.xlsx');
     }
 
 

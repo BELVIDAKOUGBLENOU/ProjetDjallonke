@@ -3,18 +3,27 @@
 namespace App\Exports;
 
 use App\Models\Premise;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class PremisesExport implements FromCollection, WithHeadings, WithMapping
+class PremisesExport implements FromQuery, WithHeadings, WithMapping
 {
-    /**
-     * @return \Illuminate\Support\Collection
-     */
-    public function collection()
+    protected $communityId;
+
+    public function __construct($communityId)
     {
-        return Premise::all();
+        $this->communityId = $communityId;
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function query()
+    {
+        return Premise::query()
+            ->where('community_id', $this->communityId)
+            ->withCount('animals');
     }
 
     public function headings(): array
@@ -27,6 +36,7 @@ class PremisesExport implements FromCollection, WithHeadings, WithMapping
             'GPS Coordinates',
             'Type',
             'Health Status',
+            'Animals Count',
             'Created At',
         ];
     }
@@ -41,6 +51,7 @@ class PremisesExport implements FromCollection, WithHeadings, WithMapping
             $premise->gps_coordinates,
             $premise->type,
             $premise->health_status,
+            $premise->animals_count,
             $premise->created_at,
         ];
     }

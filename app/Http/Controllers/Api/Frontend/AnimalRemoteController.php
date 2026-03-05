@@ -10,6 +10,8 @@ use App\Models\Animal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\AnimalsWithDetailsExport;
 
 class AnimalRemoteController extends Controller
 {
@@ -17,7 +19,7 @@ class AnimalRemoteController extends Controller
     {
         $table = Animal::getTableName();
         $this->middleware(SetCommunityContextFrontend::class);
-        $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:list $table")->only(['index', 'export']);
         $this->middleware("permission:view $table")->only(['show']);
         $this->middleware("permission:create $table")->only(['store']);
         $this->middleware("permission:update $table")->only(['update']);
@@ -45,9 +47,21 @@ class AnimalRemoteController extends Controller
             $query->search($q);
         }
 
+        if ($request->filled('premises_id')) {
+            $query->where('premises_id', $request->input('premises_id'));
+        }
+
         $animals = $query->with(['premise', 'creator', 'personRoles.person', 'identifiers'])->latest()->paginate($limit);
 
         return AnimalResource::collection($animals);
+    }
+
+    public function export(Request $request)
+    {
+        $communityId = getPermissionsTeamId();
+        $filters = $request->only(['q', 'premises_id']);
+
+        return Excel::download(new AnimalsWithDetailsExport($filters, $communityId), 'animals_export.xlsx');
     }
 
     /**
@@ -71,7 +85,7 @@ class AnimalRemoteController extends Controller
      */
     public function show(string $id)
     {
-        $animal = Animal::with(['premise', 'creator'])->findOrFail($id);
+        $animal = Animal::with(['premise', 'creator', 'personRoles.person', 'identifiers', 'events'])->findOrFail($id);
 
         return new AnimalResource($animal);
     }

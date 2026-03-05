@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->foreignId('person_id')->constrained('persons')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete()->cascadeOnUpdate();
             $table->enum('role_type', PersonRole::ROLE_TYPES);
+            $table->unique(['person_id', 'animal_id', 'role_type']);
             $table->timestamps();
             $table->softDeletes();
         });

@@ -10,6 +10,8 @@ use App\Models\Person;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PersonsExport;
 
 class PersonRemoteController extends Controller
 {
@@ -17,11 +19,24 @@ class PersonRemoteController extends Controller
     {
         $table = Person::getTableName();
         $this->middleware(SetCommunityContextFrontend::class);
-        $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:list $table")->only(['index', 'export']);
         $this->middleware("permission:view $table")->only(['show']);
         $this->middleware("permission:create $table")->only(['store']);
         $this->middleware("permission:update $table")->only(['update']);
         $this->middleware("permission:delete $table")->only('destroy');
+    }
+
+    /**
+     * Export persons
+     */
+    public function export()
+    {
+        $communityId = getPermissionsTeamId();
+        if (!$communityId || $communityId == 0) {
+            return response()->json(['message' => 'Community context required for export.'], 403);
+        }
+
+        return Excel::download(new PersonsExport($communityId), 'persons.xlsx');
     }
 
     /**
@@ -34,7 +49,13 @@ class PersonRemoteController extends Controller
 
         // If 'active_only' is used somewhere, handle it. Here just search.
 
-        $query = Person::query();
+        $query = Person::query()
+            ->withCount([
+                'personRoles as owned_animals_count' => function ($query) {
+                    $query->where('role_type', 'OWNER');
+                }
+            ])
+            ->withCount('personRoles as related_animals_count');
 
         if ($communityId && $communityId != 0) {
             $query->whereHas('personRoles', function ($q) use ($communityId) {

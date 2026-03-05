@@ -9,6 +9,8 @@ use App\Http\Resources\PremiseResource;
 use App\Models\Premise;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PremisesExport;
 
 class PremiseController extends Controller
 {
@@ -16,11 +18,24 @@ class PremiseController extends Controller
     {
         $table = Premise::getTableName();
         $this->middleware(SetCommunityContextFrontend::class);
-        $this->middleware("permission:list $table")->only('index');
+        $this->middleware("permission:list $table")->only(['index', 'export']);
         $this->middleware("permission:view $table")->only(['show']);
         $this->middleware("permission:create $table")->only(['store']);
         $this->middleware("permission:update $table")->only(['update']);
         $this->middleware("permission:delete $table")->only('destroy');
+    }
+
+    /**
+     * Export premises
+     */
+    public function export()
+    {
+        $communityId = getPermissionsTeamId();
+        if (!$communityId || $communityId == 0) {
+            return response()->json(['message' => 'Community context required for export.'], 403);
+        }
+
+        return Excel::download(new PremisesExport($communityId), 'premises.xlsx');
     }
 
     /**
@@ -31,7 +46,8 @@ class PremiseController extends Controller
         $q = $request->input('q');
 
         $query = Premise::query()
-            ->with(['village', 'creator']);
+            ->with(['village', 'creator'])
+            ->withCount('animals');
 
         if ($q) {
             $query->search($q);
