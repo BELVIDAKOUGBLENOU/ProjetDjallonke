@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import api from '@/services/api';
+import api from "@/services/api";
 import { ref } from "vue";
 
 export const useGeoStore = defineStore("geo", () => {
@@ -18,7 +18,7 @@ export const useGeoStore = defineStore("geo", () => {
         if (!force && cache.value.countries) return cache.value.countries;
         loading.value = true;
         try {
-            const response = await api.get('/fr-countries');
+            const response = await api.get("/fr-countries");
             cache.value.countries = response.data;
             return response.data;
         } finally {
@@ -31,7 +31,9 @@ export const useGeoStore = defineStore("geo", () => {
             return cache.value.districts[countryId];
         loading.value = true;
         try {
-            const response = await api.get(`/fr-countries/${countryId}/districts`);
+            const response = await api.get(
+                `/fr-countries/${countryId}/districts`,
+            );
             cache.value.districts[countryId] = response.data;
             return response.data;
         } finally {
@@ -44,7 +46,9 @@ export const useGeoStore = defineStore("geo", () => {
             return cache.value.subDistricts[districtId];
         loading.value = true;
         try {
-            const response = await api.get(`districts/${districtId}/sub-districts`);
+            const response = await api.get(
+                `districts/${districtId}/sub-districts`,
+            );
             cache.value.subDistricts[districtId] = response.data;
             return response.data;
         } finally {
@@ -57,7 +61,9 @@ export const useGeoStore = defineStore("geo", () => {
             return cache.value.villages[subDistrictId];
         loading.value = true;
         try {
-            const response = await api.get(`sub-districts/${subDistrictId}/villages`);
+            const response = await api.get(
+                `sub-districts/${subDistrictId}/villages`,
+            );
             cache.value.villages[subDistrictId] = response.data;
             return response.data;
         } finally {

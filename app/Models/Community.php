@@ -128,6 +128,18 @@ class Community extends Model
                     $user->update(['person_id' => $person->id]);
                 }
             }
+            $isSuperAdmin = false;
+            $temp = getPermissionsTeamId();
+            setPermissionsTeamId(0); // Temporarily set to global to check role
+            // S'il possedes des roles globaux, on l'empeche d'integrer des communautés, même s'il n'est pas super admin
+            if (count($user->getRoleNames()) > 0) {
+                $isSuperAdmin = true;
+            }
+            setPermissionsTeamId($temp); // Restore original team context
+            if ($isSuperAdmin) {
+
+                throw new \Exception("Super-admin cannot be added as a member of a community.");
+            }
 
             // Create Membership
             $exists = CommunityMembership::where('community_id', $communityId)

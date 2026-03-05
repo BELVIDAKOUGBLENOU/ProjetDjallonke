@@ -31,7 +31,7 @@
             <div class="mt-1 relative">
                 <input id="password" name="password" type="password" autocomplete="current-password" required
                     class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-gray-900 placeholder-gray-400 transition focus:border-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:focus:border-red-400"
-                    placeholder="••••••••">
+                    placeholder="">
                 <button type="button" onclick="togglePassword('password', this)"
                     class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
                     <i class="ti ti-eye"></i>

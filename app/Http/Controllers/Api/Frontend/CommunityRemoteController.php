@@ -55,9 +55,11 @@ class CommunityRemoteController extends Controller
 
     public function addMember(Request $request, Community $community)
     {
-        $isSuperAdmin = auth()->user()?->hasRole('Super-admin') ?? false;
+
+
+        // s'il possede deja des roles global, on l'empeche d'integrer des communautés
         $request->validate([
-            'role' => 'required|in:FARMER,VET,TECHNICIAN,RESEARCHER' . ($isSuperAdmin ? ',COMMUNITY_ADMIN' : ''),
+            'role' => 'required|in:FARMER,VET,TECHNICIAN,RESEARCHER,COMMUNITY_ADMIN',
             'name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'nullable|required_if:role,FARMER|string|max:20',
