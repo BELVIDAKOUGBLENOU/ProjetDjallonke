@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import axios from "axios";
+import api from '@/services/api';
 import { ref } from "vue";
 
 export const useGeoStore = defineStore("geo", () => {
@@ -14,11 +14,11 @@ export const useGeoStore = defineStore("geo", () => {
     const loading = ref(false);
 
     // Actions
-    const fetchCountries = async () => {
-        if (cache.value.countries) return cache.value.countries;
+    const fetchCountries = async (force = false) => {
+        if (!force && cache.value.countries) return cache.value.countries;
         loading.value = true;
         try {
-            const response = await axios.get(route("api.geo.countries.index"));
+            const response = await api.get('/fr-countries');
             cache.value.countries = response.data;
             return response.data;
         } finally {
@@ -26,14 +26,12 @@ export const useGeoStore = defineStore("geo", () => {
         }
     };
 
-    const fetchDistricts = async (countryId) => {
-        if (cache.value.districts[countryId])
+    const fetchDistricts = async (countryId, force = false) => {
+        if (!force && cache.value.districts[countryId])
             return cache.value.districts[countryId];
         loading.value = true;
         try {
-            const response = await axios.get(
-                route("api.geo.countries.districts", { country: countryId })
-            );
+            const response = await api.get(`/fr-countries/${countryId}/districts`);
             cache.value.districts[countryId] = response.data;
             return response.data;
         } finally {
@@ -41,16 +39,12 @@ export const useGeoStore = defineStore("geo", () => {
         }
     };
 
-    const fetchSubDistricts = async (districtId) => {
-        if (cache.value.subDistricts[districtId])
+    const fetchSubDistricts = async (districtId, force = false) => {
+        if (!force && cache.value.subDistricts[districtId])
             return cache.value.subDistricts[districtId];
         loading.value = true;
         try {
-            const response = await axios.get(
-                route("api.geo.districts.sub-districts", {
-                    district: districtId,
-                })
-            );
+            const response = await api.get(`districts/${districtId}/sub-districts`);
             cache.value.subDistricts[districtId] = response.data;
             return response.data;
         } finally {
@@ -58,16 +52,12 @@ export const useGeoStore = defineStore("geo", () => {
         }
     };
 
-    const fetchVillages = async (subDistrictId) => {
-        if (cache.value.villages[subDistrictId])
+    const fetchVillages = async (subDistrictId, force = false) => {
+        if (!force && cache.value.villages[subDistrictId])
             return cache.value.villages[subDistrictId];
         loading.value = true;
         try {
-            const response = await axios.get(
-                route("api.geo.sub-districts.villages", {
-                    subDistrict: subDistrictId,
-                })
-            );
+            const response = await api.get(`sub-districts/${subDistrictId}/villages`);
             cache.value.villages[subDistrictId] = response.data;
             return response.data;
         } finally {

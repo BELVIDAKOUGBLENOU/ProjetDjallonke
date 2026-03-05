@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Frontend\CommunityRemoteController;
+use App\Http\Controllers\Api\Frontend\GeographicRemoteController;
 use Illuminate\Support\Facades\Route;
 use Orion\Facades\Orion;
 use App\Http\Controllers\PostsController;
@@ -38,5 +39,31 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('fr-events/statistics', [\App\Http\Controllers\Api\Frontend\EventRemoteController::class, 'statistics']);
     Route::get('fr-events-export', [\App\Http\Controllers\Api\Frontend\EventRemoteController::class, 'export']);
     Route::apiResource('fr-events', \App\Http\Controllers\Api\Frontend\EventRemoteController::class)->parameters(['fr-events' => 'event'])->except(['store']);
+
+});
+
+Route::middleware('auth:sanctum')->prefix("geo")->group(function () {
+
+
+    Route::get('countries', [GeographicRemoteController::class, 'countries'])->name('countries.index');
+    Route::get('countries/{country}/districts', [GeographicRemoteController::class, 'districts'])->name('countries.districts');
+    Route::get('districts/{district}/sub-districts', [GeographicRemoteController::class, 'subDistricts'])->name('districts.sub-districts');
+    Route::get('sub-districts/{subDistrict}/villages', [GeographicRemoteController::class, 'villages'])->name('sub-districts.villages');
+
+    Route::post('countries', [GeographicRemoteController::class, 'storeCountry'])->name('countries.store');
+    Route::put('countries/{country}', [GeographicRemoteController::class, 'updateCountry'])->name('countries.update');
+    Route::delete('countries/{country}', [GeographicRemoteController::class, 'destroyCountry'])->name('countries.destroy');
+
+    Route::post('districts', [GeographicRemoteController::class, 'storeDistrict'])->name('districts.store');
+    Route::put('districts/{district}', [GeographicRemoteController::class, 'updateDistrict'])->name('districts.update');
+    Route::delete('districts/{district}', [GeographicRemoteController::class, 'destroyDistrict'])->name('districts.destroy');
+
+    Route::post('sub-districts', [GeographicRemoteController::class, 'storeSubDistrict'])->name('sub-districts.store');
+    Route::put('sub-districts/{subDistrict}', [GeographicRemoteController::class, 'updateSubDistrict'])->name('sub-districts.update');
+    Route::delete('sub-districts/{subDistrict}', [GeographicRemoteController::class, 'destroySubDistrict'])->name('sub-districts.destroy');
+
+    Route::post('villages', [GeographicRemoteController::class, 'storeVillage'])->name('villages.store');
+    Route::put('villages/{village}', [GeographicRemoteController::class, 'updateVillage'])->name('villages.update');
+    Route::delete('villages/{village}', [GeographicRemoteController::class, 'destroyVillage'])->name('villages.destroy');
 
 });
