@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -127,5 +128,12 @@ class User extends Authenticatable
     public function createdPerformanceRecords()
     {
         return $this->hasMany(PerformanceRecord::class, 'created_by');
+    }
+    public function rolesCustom()
+    {
+        // lister tous les role peut importe la communaute
+        return $this->morphToMany(Role::class, 'model', 'model_has_roles', 'model_id', 'role_id')
+            ->select('roles.*')
+            ->distinct();
     }
 }

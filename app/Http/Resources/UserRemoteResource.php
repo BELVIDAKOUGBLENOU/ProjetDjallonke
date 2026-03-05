@@ -14,25 +14,38 @@ class UserRemoteResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'roles' => $this->roles->map(function ($role) {
-                return [
-                    'id' => $role->id,
-                    'name' => $role->name,
-                    'guard_name' => $role->guard_name
-                ];
-            }),
-            'permissions' => $this->permissions->map(function ($perm) {
-                return [
-                    'id' => $perm->id,
-                    'name' => $perm->name
-                ];
-            }),
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-        ];
+        $data = parent::toArray($request);
+        $data['roles'] = $this->roles->map(function ($role) {
+            return [
+                'id' => $role->id,
+                'name' => $role->name,
+                'guard_name' => $role->guard_name
+            ];
+        });
+        $data['permissions'] = $this->permissions->map(function ($perm) {
+            return [
+                'id' => $perm->id,
+                'name' => $perm->name
+            ];
+        });
+        $data['created_at'] = $this->created_at->format('Y-m-d H:i:s');
+        // return [
+
+        //     'roles' => $this->roles->map(function ($role) {
+        //         return [
+        //             'id' => $role->id,
+        //             'name' => $role->name,
+        //             'guard_name' => $role->guard_name
+        //         ];
+        //     }),
+        //     'permissions' => $this->permissions->map(function ($perm) {
+        //         return [
+        //             'id' => $perm->id,
+        //             'name' => $perm->name
+        //         ];
+        //     }),
+
+        // ];
+        return $data;
     }
 }

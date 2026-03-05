@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Role;
 
@@ -40,7 +41,7 @@ class UserRemoteController extends Controller
         }
 
         $users = $users
-            ->with(['roles', 'roles.permissions']) // Basic eager load
+            ->with(['roles', 'roles.permissions', 'rolesCustom']) // Basic eager load
             // Implement search scope if User model has it, or manual search
             ->when($q, function ($query, $term) {
                 $query->where('name', 'like', "%{$term}%")
@@ -123,8 +124,8 @@ class UserRemoteController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::findOrFail($id);
-
+        $user = User::where('id', $id)->with(['rolesCustom'])->first();
+        Log::info('User id: ' . $user->id . ' received id : ' . $id . ' has roles: ', ['roles' => $user->rolesCustom->pluck('name')]);
         return new UserRemoteResource($user);
     }
 
@@ -133,7 +134,7 @@ class UserRemoteController extends Controller
      */
     public function destroy(string $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::where('id', $id)->first();
 
         if (!auth()->user()->hasRole('Super-admin')) {
             if ($user->entreprise_id !== auth()->user()->entreprise_id) {
