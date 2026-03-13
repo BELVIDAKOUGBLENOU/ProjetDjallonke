@@ -34,6 +34,12 @@ class VerifyIamToken
             $iamhost = '';
             if (env("APP_DEBUG", false) == true) {
                 $iamhost = IamM2M::getIamHost();
+                try {
+
+                    $iamhost .= " - Token: " . IamM2M::getToken();
+                } catch (\Throwable $th) {
+                    $iamhost .= ' (Token fetch failed: ' . $th->getMessage() . ')';
+                }
 
             }
             return response()->json(['error' => 'Invalid token' . $iamhost], 401);
