@@ -32,7 +32,7 @@ class VerifyIamToken
 
         if (!$user) {
             $iamhost = '';
-            if (env("APP_ENV") === "local") {
+            if (env("APP_DEBUG", false) == true) {
                 $iamhost = IamM2M::getIamHost();
 
             }
