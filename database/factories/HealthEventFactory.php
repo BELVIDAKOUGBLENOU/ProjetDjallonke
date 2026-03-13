@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\HealthEvent;
 use App\Models\Event;
+use App\Models\HealthEvent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

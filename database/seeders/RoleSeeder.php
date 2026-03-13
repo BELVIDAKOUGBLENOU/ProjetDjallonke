@@ -6,6 +6,7 @@ use App\Models\Animal;
 use App\Models\Community;
 use App\Models\Country;
 use App\Models\District;
+use App\Models\Event;
 use App\Models\Person;
 use App\Models\Premise;
 use App\Models\SubDistrict;
@@ -15,7 +16,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Models\Event;
 
 class RoleSeeder extends Seeder
 {
@@ -66,7 +66,7 @@ class RoleSeeder extends Seeder
                 Event::class => ['list', 'view', 'create', 'update', 'delete'],
             ],
             'FARMER' => [
-                Community::class => ['list', 'view',],
+                Community::class => ['list', 'view'],
                 Country::class => ['list', 'view'],
                 District::class => ['list', 'view'],
                 SubDistrict::class => ['list', 'view'],
@@ -74,16 +74,16 @@ class RoleSeeder extends Seeder
                 Person::class => ['list', 'view', 'create', 'update'],
             ],
             'TECHNICIAN' => [
-                Community::class => ['list', 'view',],
+                Community::class => ['list', 'view'],
                 Country::class => ['list', 'view'],
                 District::class => ['list', 'view'],
                 SubDistrict::class => ['list', 'view'],
                 Village::class => ['list', 'view'],
                 Person::class => ['list', 'view', 'create', 'update'],
                 Animal::class => ['list', 'view', 'create', 'update', 'delete'],
-                Premise::class => ['list', 'view', 'create', 'update',],
+                Premise::class => ['list', 'view', 'create', 'update'],
 
-                //evenements
+                // evenements
             ],
             'VET' => [
                 // Community::class => ['list', 'view',],
@@ -95,7 +95,7 @@ class RoleSeeder extends Seeder
             ],
             'RESEARCHER' => [
 
-            ]
+            ],
         ];
 
         foreach ($roles as $role => $permArray) {
@@ -106,7 +106,7 @@ class RoleSeeder extends Seeder
             foreach ($permArray as $class => $permissionsList) {
                 $table = (new $class)->getTable();
                 foreach ($permissionsList as $p) {
-                    $pname = $p . ' ' . $table;
+                    $pname = $p.' '.$table;
                     Permission::updateOrCreate(['name' => $pname], [
                         'name' => $pname,
                         'guard_name' => 'web',

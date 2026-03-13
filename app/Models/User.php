@@ -28,7 +28,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'person_id',
-        'fcm_token'
+        'fcm_token',
     ];
 
     /**
@@ -60,7 +60,7 @@ class User extends Authenticatable
         if ($term === '') {
             return $query;
         }
-        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
         // Adjust searchable columns after generation if necessary
         $columns = array_filter([
             // Example: 'name', 'title', 'slug'
@@ -68,6 +68,7 @@ class User extends Authenticatable
         if (empty($columns)) {
             return $query; // No columns defined; user will customize.
         }
+
         return $query->where(function ($q) use ($columns, $like) {
             foreach ($columns as $idx => $col) {
                 $method = $idx === 0 ? 'where' : 'orWhere';
@@ -75,6 +76,7 @@ class User extends Authenticatable
             }
         });
     }
+
     public function createdCommunities()
     {
         return $this->hasMany(Community::class, 'created_by');
@@ -91,10 +93,12 @@ class User extends Authenticatable
             ->withPivot('role', 'added_at')
             ->withTimestamps();
     }
-    function mobileAppCommunities()
+
+    public function mobileAppCommunities()
     {
         $communities = $this->communities()
             ->whereIn('role', ['FARMER', 'TECHNICIAN']);
+
         return $communities;
     }
 
@@ -102,11 +106,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Premise::class, 'created_by');
     }
-    function communityPermissions($community_id)
+
+    public function communityPermissions($community_id)
     {
         setPermissionsTeamId($community_id);
         $permissions = $this->getAllPermissions();
         setPermissionsTeamId(null);
+
         return $permissions;
     }
 
@@ -129,6 +135,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(PerformanceRecord::class, 'created_by');
     }
+
     public function rolesCustom()
     {
         // lister tous les role peut importe la communaute

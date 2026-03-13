@@ -1,19 +1,19 @@
 <?php
 
+use App\Http\Controllers\AnimalController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\DistrictController;
+use App\Http\Controllers\GeographicManagementController;
+use App\Http\Controllers\PersonController;
+use App\Http\Controllers\PremiseController;
+use App\Http\Controllers\SubDistrictController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\VillageController;
+use App\Http\Middleware\SetCommunityContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\AnimalController;
-use App\Http\Controllers\PersonController;
-use App\Http\Controllers\CountryController;
-use App\Http\Controllers\PremiseController;
-use App\Http\Controllers\VillageController;
-use App\Http\Controllers\DistrictController;
-use App\Http\Middleware\SetCommunityContext;
-use App\Http\Controllers\CommunityController;
-use App\Http\Controllers\SubDistrictController;
-use App\Http\Controllers\GeographicManagementController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -21,7 +21,7 @@ use App\Http\Controllers\GeographicManagementController;
 
 Auth::routes(['register' => false]);
 
-Route::middleware(["auth", SetCommunityContext::class])->group(function () {
+Route::middleware(['auth', SetCommunityContext::class])->group(function () {
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
@@ -31,7 +31,6 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
     Route::post('users/{user}/impersonate', [UserController::class, 'impersonate'])->name('users.impersonate');
     Route::get('users-stop-impersonate', [UserController::class, 'stopImpersonate'])->name('users.stop-impersonate');
     Route::resource('users', UserController::class);
-
 
     Route::resource('roles', App\Http\Controllers\RoleController::class);
     Route::post('roles/{role}/permissions', [App\Http\Controllers\RoleController::class, 'updatePermissions'])->name('roles.permissions.update');
@@ -68,7 +67,6 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
     Route::post('premises/{premise}/keepers', [App\Http\Controllers\PremisesKeeperController::class, 'store'])->name('premises.keepers.store');
     Route::put('premises-keepers/{premisesKeeper}', [App\Http\Controllers\PremisesKeeperController::class, 'update'])->name('premises-keepers.update');
     Route::delete('premises-keepers/{premisesKeeper}', [App\Http\Controllers\PremisesKeeperController::class, 'destroy'])->name('premises-keepers.destroy');
-
 
     Route::get('people/export', [PersonController::class, 'export'])->name('people.export');
     Route::get('people/template', [PersonController::class, 'downloadTemplate'])->name('people.template');
@@ -116,5 +114,4 @@ Route::middleware(["auth", SetCommunityContext::class])->group(function () {
 });
 Route::redirect('/', '/home');
 
-
-Route::get("/api/update", [Controller::class, "autoUpdate"])->name("update")->middleware(['auth', SetCommunityContext::class, 'role:Super-admin']);
+Route::get('/api/update', [Controller::class, 'autoUpdate'])->name('update')->middleware(['auth', SetCommunityContext::class, 'role:Super-admin']);

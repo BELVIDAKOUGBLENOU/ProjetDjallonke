@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\Country;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Requests\CountryRequest;
 use App\Http\Resources\CountryResource;
-use App\Http\Middleware\SetCommunityContext;
+use App\Models\Country;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\Middleware;
-use App\Http\Middleware\SetCommunityContextAPI;
-use Illuminate\Routing\Controllers\HasMiddleware;
 
 class CountrySyncController extends Controller
 {
@@ -108,7 +106,7 @@ class CountrySyncController extends Controller
         }
 
         $resource = CountryResource::collection($items);
-        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
+        $resource->each(fn ($r) => $r->setImbriqued($imbriqued));
 
         return response()->json([
             'data' => $resource,

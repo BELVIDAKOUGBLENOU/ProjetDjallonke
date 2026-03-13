@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\SubDistrict;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Requests\SubDistrictRequest;
 use App\Http\Resources\SubDistrictResource;
+use App\Models\SubDistrict;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\Middleware;
-use App\Http\Middleware\SetCommunityContextAPI;
-use Illuminate\Routing\Controllers\HasMiddleware;
 
 class SubDistrictSyncController extends Controller
 {
@@ -40,7 +39,7 @@ class SubDistrictSyncController extends Controller
         $subDistricts = $subDistricts->get();
 
         $resource = SubDistrictResource::collection($subDistricts);
-        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
+        $resource->each(fn ($r) => $r->setImbriqued($imbriqued));
 
         return response()->json($resource);
     }
@@ -65,7 +64,7 @@ class SubDistrictSyncController extends Controller
         $subDistricts = $subDistricts->paginate();
 
         $resource = SubDistrictResource::collection($subDistricts);
-        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
+        $resource->each(fn ($r) => $r->setImbriqued($imbriqued));
 
         return $resource;
     }

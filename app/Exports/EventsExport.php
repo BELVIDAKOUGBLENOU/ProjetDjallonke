@@ -11,7 +11,9 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 class EventsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
 {
     protected $filters;
+
     protected $communityId;
+
     protected $type;
 
     public function __construct(array $filters, $communityId)
@@ -31,7 +33,7 @@ class EventsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
             });
         }
 
-        if (!empty($this->filters['q'])) {
+        if (! empty($this->filters['q'])) {
             $q = $this->filters['q'];
             $query->where(function ($sub) use ($q) {
                 $sub->where('comment', 'like', "%{$q}%")
@@ -41,7 +43,7 @@ class EventsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
             });
         }
 
-        if (!empty($this->filters['status'])) {
+        if (! empty($this->filters['status'])) {
             if ($this->filters['status'] === 'pending') {
                 $query->where('is_confirmed', false);
             } elseif ($this->filters['status'] === 'confirmed') {
@@ -90,7 +92,7 @@ class EventsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
             'Source',
             'Statut',
             'Crée par',
-            'Commentaire'
+            'Commentaire',
         ];
 
         $specificHeadings = [];
@@ -134,7 +136,7 @@ class EventsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
             $event->source,
             $event->is_confirmed ? 'Confirmé' : 'En attente',
             $event->creator?->name ?? 'N/A',
-            $event->comment
+            $event->comment,
         ];
 
         $specificData = [];
@@ -145,7 +147,7 @@ class EventsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
                 $specificData = [
                     $h?->health_type,
                     $h?->product,
-                    $h?->result
+                    $h?->result,
                 ];
                 break;
             case 'movement_event':
@@ -212,6 +214,6 @@ class EventsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function title(): string
     {
-        return $this->type ? 'Evénements ' . strtoupper(str_replace('_', ' ', $this->type)) : 'Evénements';
+        return $this->type ? 'Evénements '.strtoupper(str_replace('_', ' ', $this->type)) : 'Evénements';
     }
 }

@@ -8,7 +8,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PersonsReferenceSheet implements FromQuery, WithTitle, WithHeadings, WithMapping
+class PersonsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
 {
     protected $communityId;
 

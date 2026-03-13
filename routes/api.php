@@ -12,7 +12,6 @@ use App\Http\Controllers\Api\Syncing\DistrictSyncController;
 use App\Http\Controllers\Api\Syncing\HealthEventSyncController;
 use App\Http\Controllers\Api\Syncing\MilkRecordSyncController;
 use App\Http\Controllers\Api\Syncing\MovementEventSyncController;
-use App\Http\Controllers\Api\Syncing\PerformanceRecordSyncController;
 use App\Http\Controllers\Api\Syncing\PersonRoleSyncController;
 use App\Http\Controllers\Api\Syncing\PersonSyncController;
 use App\Http\Controllers\Api\Syncing\PremiseSyncController;
@@ -23,18 +22,14 @@ use App\Http\Controllers\Api\Syncing\UserSyncController;
 use App\Http\Controllers\Api\Syncing\VillageSyncController;
 use App\Http\Controllers\Api\Syncing\WeightRecordSyncController;
 use App\Http\Controllers\AuthController;
-use App\Http\Middleware\AccessDonneesCommunautaire;
-use App\Http\Middleware\SetCommunityContextAPI;
-use App\Http\Resources\UserResource;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Constants;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/constants', [ConstantDataController::class, 'getConstants']);
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth.iam')->group(function () {
+    // Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [UserSyncController::class, 'userInfo']);
 
@@ -54,14 +49,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/community', [\App\Http\Controllers\DashboardController::class, 'communityStats']);
     Route::patch('/notifications/{id}/read', [App\Http\Controllers\Api\Syncing\NotificationSyncController::class, 'markAsRead']);
 
-
-
     // // Communities (Orion)
     // Route::get('/communities/my-communities', [App\Http\Controllers\Api\CommunityController::class, 'myCommunities']); // Custom endpoint if needed distinct from index
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    //PULL
+    // PULL
     Route::get('/pull/community', [CommunitySyncController::class, 'pull']);
     Route::get('/pull/countries', [CountrySyncController::class, 'pull']);
     Route::get('/pull/persons', [PersonSyncController::class, 'pull']);
@@ -77,7 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pull/milk-records', [MilkRecordSyncController::class, 'pull']);
     Route::get('/pull/death-events', [DeathEventSyncController::class, 'pull']);
     Route::get('/pull/weight-records', [WeightRecordSyncController::class, 'pull']);
-    //PUSH
+    // PUSH
     Route::post('/push/premises', [PremiseSyncController::class, 'push']);
     Route::post('/push/animals', [AnimalSyncController::class, 'push']);
     Route::post('/push/animals-identifiers', [AnimalIdentifierSyncController::class, 'push']);
@@ -106,8 +99,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::apiResource('api-communities', CommunityController::class)->only(['index', 'show']);
     // Route::get('get-all-communities', [CommunityController::class, 'getAllData']);
 
-
-
 });
 
-require __DIR__ . '/frontend.php';
+require __DIR__.'/frontend.php';

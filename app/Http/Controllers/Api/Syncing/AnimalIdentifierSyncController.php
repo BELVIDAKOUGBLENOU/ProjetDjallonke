@@ -2,26 +2,24 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\Animal;
-use Illuminate\Http\Request;
-use App\Models\AnimalIdentifier;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Resources\AnimalIdentifierResource;
+use App\Models\Animal;
+use App\Models\AnimalIdentifier;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AnimalIdentifierSyncController extends Controller
 {
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
-        $this->middleware(SetCommunityContextAPI::class);
 
+        $this->middleware(SetCommunityContextAPI::class);
 
         // Middleware pour permissions CRUD
         $table = Animal::getTableName();
@@ -31,6 +29,7 @@ class AnimalIdentifierSyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +40,7 @@ class AnimalIdentifierSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -77,7 +76,7 @@ class AnimalIdentifierSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->updated_at->toDateTimeString(),
-                'uid' => $last->uid
+                'uid' => $last->uid,
             ];
         }
 
@@ -85,7 +84,7 @@ class AnimalIdentifierSyncController extends Controller
             'data' => AnimalIdentifierResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 
@@ -136,13 +135,14 @@ class AnimalIdentifierSyncController extends Controller
     {
         //
     }
+
     public function push(Request $request): JsonResponse
     {
         $request->validate([
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date',
         ]);
 
         $applied = [];
@@ -164,6 +164,7 @@ class AnimalIdentifierSyncController extends Controller
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -172,6 +173,7 @@ class AnimalIdentifierSyncController extends Controller
                 if (!$animal) {
                     DB::rollBack();
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
+
                     continue;
                 }
 
@@ -180,9 +182,10 @@ class AnimalIdentifierSyncController extends Controller
                         if ($item['version'] <= $existing->version) {
                             $conflicts[] = [
                                 'uid' => $item['uid'],
-                                'server_data' => new AnimalIdentifierResource($existing)
+                                'server_data' => new AnimalIdentifierResource($existing),
                             ];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -193,11 +196,12 @@ class AnimalIdentifierSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
                 if (!$existing) {
-                    $ai = new AnimalIdentifier();
+                    $ai = new AnimalIdentifier;
                     $ai->uid = $item['uid'];
                     $ai->animal_id = $animal->id;
                     $ai->type = $item['type'] ?? null;
@@ -208,15 +212,17 @@ class AnimalIdentifierSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
                 if ($item['version'] <= $existing->version) {
                     $conflicts[] = [
                         'uid' => $item['uid'],
-                        'server_data' => new AnimalIdentifierResource($existing)
+                        'server_data' => new AnimalIdentifierResource($existing),
                     ];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -240,7 +246,7 @@ class AnimalIdentifierSyncController extends Controller
             'applied' => $applied,
             'conflicts' => $conflicts,
             'errors' => $errors,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 }

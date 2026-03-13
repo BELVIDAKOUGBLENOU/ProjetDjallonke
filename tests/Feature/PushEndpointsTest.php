@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Animal;
 use App\Models\Person;
 use App\Models\Premise;
-use App\Models\Animal;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Tests\TestCase;
 
 class PushEndpointsTest extends TestCase
 {
@@ -44,6 +44,7 @@ class PushEndpointsTest extends TestCase
         if (function_exists('setPermissionsTeamId')) {
             setPermissionsTeamId($community->id);
         }
+
         return $user;
     }
 
@@ -53,10 +54,10 @@ class PushEndpointsTest extends TestCase
         $uid = (string) Str::uuid();
         $payload = ['data' => [['uid' => $uid, 'version' => 1, 'code' => 'PUSH1', 'address' => 'Addr', 'gps_coordinates' => '0,0', 'type' => 'FARM']]];
         $query = http_build_query($payload);
-        $response = $this->getJson('/api/push/premises?' . $query);
+        $response = $this->getJson('/api/push/premises?'.$query);
         $response->assertStatus(200);
         $response->assertJsonStructure(['status', 'applied', 'conflicts', 'errors']);
-        Log::info("Premises push response ", $response->json());
+        Log::info('Premises push response ', $response->json());
     }
 
     public function test_push_animals_returns_json()
@@ -66,10 +67,10 @@ class PushEndpointsTest extends TestCase
         $uid = (string) Str::uuid();
         $payload = ['data' => [['uid' => $uid, 'version' => 1, 'premise_uid' => $prem->uid]]];
         $query = http_build_query($payload);
-        $response = $this->getJson('/api/push/animals?' . $query);
+        $response = $this->getJson('/api/push/animals?'.$query);
         $response->assertStatus(200);
         $response->assertJsonStructure(['status', 'applied', 'conflicts', 'errors']);
-        Log::info("Animals push response ", $response->json());
+        Log::info('Animals push response ', $response->json());
     }
 
     public function test_push_animals_identifiers_returns_json()
@@ -79,10 +80,10 @@ class PushEndpointsTest extends TestCase
         $uid = (string) Str::uuid();
         $payload = ['data' => [['uid' => $uid, 'version' => 1, 'animal_uid' => $animal->uid, 'type' => 'tag', 'code' => 'T123']]];
         $query = http_build_query($payload);
-        $response = $this->getJson('/api/push/animals-identifiers?' . $query);
+        $response = $this->getJson('/api/push/animals-identifiers?'.$query);
         $response->assertStatus(200);
         $response->assertJsonStructure(['status', 'applied', 'conflicts', 'errors']);
-        Log::info("Animal identifiers push response ", $response->json());
+        Log::info('Animal identifiers push response ', $response->json());
     }
 
     public function test_push_persons_returns_json()
@@ -97,9 +98,9 @@ class PushEndpointsTest extends TestCase
                     'name' => 'Test Person',
                     'address' => 'Addr',
                     'phone' => '000',
-                    'nationalId' => 'NID123'
-                ]
-            ]
+                    'nationalId' => 'NID123',
+                ],
+            ],
         ];
         $response = $this->postJson('/api/push/persons', $payload);
         $response->assertStatus(200);
@@ -108,7 +109,7 @@ class PushEndpointsTest extends TestCase
         $this->assertArrayHasKey('applied', $json);
         $this->assertArrayHasKey('conflicts', $json);
         $this->assertArrayHasKey('errors', $json);
-        Log::info("Persons push response ", $json);
+        Log::info('Persons push response ', $json);
     }
 
     public function test_push_person_roles_returns_json()
@@ -119,9 +120,9 @@ class PushEndpointsTest extends TestCase
         $uid = (string) Str::uuid();
         $payload = ['data' => [['uid' => $uid, 'version' => 1, 'person_uid' => $person->uid, 'animal_uid' => $animal->uid, 'role_type' => 'OWNER']]];
         $query = http_build_query($payload);
-        $response = $this->getJson('/api/push/person-roles?' . $query);
+        $response = $this->getJson('/api/push/person-roles?'.$query);
         $response->assertStatus(200);
         $response->assertJsonStructure(['status', 'applied', 'conflicts', 'errors']);
-        Log::info("Person roles push response ", $response->json());
+        Log::info('Person roles push response ', $response->json());
     }
 }

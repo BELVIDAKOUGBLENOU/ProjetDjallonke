@@ -3,16 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\SetCommunityContext;
+use App\Http\Requests\CommunityRequest;
 use App\Models\Community;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\CommunityRequest;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class CommunityController extends Controller
 {
-
     public function __construct()
     {
         // Middleware pour authentification
@@ -27,6 +26,7 @@ class CommunityController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -37,8 +37,8 @@ class CommunityController extends Controller
         $com = getPermissionsTeamId();
         setPermissionsTeamId(null);
         $communities = Community::query();
-        if (!auth()->user()->hasRole('Super-admin')) {
-            # code...
+        if (! auth()->user()->hasRole('Super-admin')) {
+            // code...
             $communities = $communities->whereHas('members', function ($query) {
                 $query->where('users.id', auth()->id());
             });
@@ -58,7 +58,7 @@ class CommunityController extends Controller
      */
     public function create(): View
     {
-        $community = new Community();
+        $community = new Community;
         $countries = \App\Models\Country::where('is_active', true)->get();
 
         return view('community.create', compact('community', 'countries'));
@@ -131,6 +131,7 @@ class CommunityController extends Controller
     {
         $user = auth()->user();
         $communities = $user->communities;
+
         return view('community.my-communities', compact('communities'));
     }
 
@@ -144,7 +145,7 @@ class CommunityController extends Controller
         $user = auth()->user();
 
         // Verify membership
-        if (!$user->communities()->where('communities.id', $communityId)->exists()) {
+        if (! $user->communities()->where('communities.id', $communityId)->exists()) {
             return back()->with('error', 'You are not a member of this community.');
         }
 

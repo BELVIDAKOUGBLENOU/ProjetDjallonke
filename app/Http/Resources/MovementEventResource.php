@@ -21,6 +21,7 @@ class MovementEventResource extends JsonResource
         $data['from_premises_uid'] = $this->fromPremises ? $this->fromPremises->uid : $this->resource->fromPremises->uid;
 
         $data['to_premises_uid'] = $this->toPremises ? $this->toPremises->uid : $this->resource->toPremises->uid;
+
         return $data;
     }
 }

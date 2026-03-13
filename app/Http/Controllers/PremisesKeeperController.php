@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Premise;
 use App\Models\PremisesKeeper;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
 
 class PremisesKeeperController extends Controller
 {

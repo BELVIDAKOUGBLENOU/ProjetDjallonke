@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\VillageRequest;
 use App\Models\Village;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\VillageRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
-use Illuminate\Support\Facades\DB;
-
 class VillageController extends Controller
 {
-
     /* public function __construct()
     {
         // Middleware pour authentification
@@ -49,7 +47,7 @@ class VillageController extends Controller
      */
     public function create(): View
     {
-        $village = new Village();
+        $village = new Village;
         $subDistricts = \App\Models\SubDistrict::join('districts', 'sub_districts.district_id', '=', 'districts.id')
             ->join('countries', 'districts.country_id', '=', 'countries.id')
             ->select('sub_districts.id', DB::raw("CONCAT(sub_districts.name, ' (District : ', districts.name, ', Pays : ', countries.name, ')') as name"))

@@ -38,12 +38,12 @@ class Country extends Model
         if ($term === '') {
             return $query;
         }
-        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
         // Adjust searchable columns after generation if necessary
         $columns = array_filter([
             'name',
             'code_iso',
-            'emoji'
+            'emoji',
         ]);
         if (empty($columns)) {
             return $query; // No columns defined; user will customize.
@@ -77,6 +77,4 @@ class Country extends Model
     {
         return $this->hasMany(\App\Models\District::class, 'country_id', 'id');
     }
-
-
 }

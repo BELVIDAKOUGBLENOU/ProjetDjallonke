@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DistrictRequest;
 use App\Models\Country;
 use App\Models\District;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\DistrictRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
 
 class DistrictController extends Controller
 {
-
     public function __construct()
     {
         // Middleware pour authentification
@@ -26,6 +25,7 @@ class DistrictController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +38,6 @@ class DistrictController extends Controller
             ->paginate()
             ->appends(['q' => $q]);
 
-
         return view('district.index', compact('districts', 'q'))
             ->with('i', ($request->input('page', 1) - 1) * $districts->perPage());
     }
@@ -48,9 +47,8 @@ class DistrictController extends Controller
      */
     public function create(): View
     {
-        $district = new District();
+        $district = new District;
         $countries = Country::where('is_active', true)->get();
-
 
         return view('district.create', compact('district', 'countries'));
     }
@@ -84,7 +82,6 @@ class DistrictController extends Controller
     {
         $district = District::findOrFail($id);
         $countries = Country::where('is_active', true)->get();
-
 
         return view('district.edit', compact('district', 'countries'));
     }

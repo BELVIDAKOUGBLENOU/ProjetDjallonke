@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CountryRequest;
 use App\Models\Country;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\CountryRequest;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class CountryController extends Controller
 {
-
     public function __construct()
     {
         // Middleware pour authentification
@@ -25,6 +24,7 @@ class CountryController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -47,7 +47,7 @@ class CountryController extends Controller
      */
     public function create(): View
     {
-        $country = new Country();
+        $country = new Country;
 
         return view('country.create', compact('country'));
     }

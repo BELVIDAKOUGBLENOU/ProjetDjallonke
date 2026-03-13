@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PremisesExport;
+use App\Exports\PremisesImportErrorsExport;
+use App\Exports\PremisesTemplateExport;
+use App\Http\Requests\PremiseRequest;
+use App\Imports\PremisesImport;
 use App\Models\Premise;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\PremiseRequest;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PremisesExport;
-use App\Exports\PremisesTemplateExport;
-use App\Exports\PremisesImportErrorsExport;
-use App\Imports\PremisesImport;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PremiseController extends Controller
 {
-
     public function __construct()
     {
         // Middleware pour authentification
@@ -33,6 +32,7 @@ class PremiseController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -56,7 +56,7 @@ class PremiseController extends Controller
      */
     public function create(): View
     {
-        $premise = new Premise();
+        $premise = new Premise;
         $villages = \App\Models\Village::all();
 
         return view('premise.create', compact('premise', 'villages'));
@@ -211,12 +211,13 @@ class PremiseController extends Controller
 
         session()->forget(['import_premises_valid_data', 'import_premises_invalid_data']);
 
-        return redirect()->route('premises.index')->with('success', count($validData) . ' premises importées avec succès.');
+        return redirect()->route('premises.index')->with('success', count($validData).' premises importées avec succès.');
     }
 
     public function downloadErrors()
     {
         $invalidData = session()->get('import_premises_invalid_data', []);
+
         return Excel::download(new PremisesImportErrorsExport($invalidData), 'import_errors.xlsx');
     }
 }

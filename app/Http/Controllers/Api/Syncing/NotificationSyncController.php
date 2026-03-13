@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Syncing;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class NotificationSyncController extends Controller
 {
@@ -14,6 +13,7 @@ class NotificationSyncController extends Controller
     public function pull(Request $request)
     {
         $notifications = $request->user()->notifications()->paginate(10);
+
         return response()->json($notifications);
     }
 
@@ -25,12 +25,12 @@ class NotificationSyncController extends Controller
         $notification = $request->user()->notifications()->findOrFail($id);
 
         // Mark as read when viewing details
-        if (!$notification->read_at) {
+        if (! $notification->read_at) {
             $notification->markAsRead();
         }
 
         return response()->json([
-            'notification' => $notification
+            'notification' => $notification,
         ]);
     }
 
@@ -41,7 +41,7 @@ class NotificationSyncController extends Controller
     {
         $notification = $request->user()->notifications()->findOrFail($id);
 
-        if (!$notification->read_at) {
+        if (! $notification->read_at) {
             $notification->markAsRead();
         }
 

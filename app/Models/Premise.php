@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Premise extends Model
 {
     /** @use HasFactory<\Database\Factories\PremiseFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     const TYPES = ['FARM', 'MARKET', 'SLAUGHTERHOUSE', 'PASTURE', 'TRANSPORT'];
@@ -25,30 +26,32 @@ class Premise extends Model
         'type',
         'health_status',
         'uid',
-        'version'
+        'version',
     ];
 
     public static function getTableName()
     {
         return (new self)->getTable();
     }
+
     public function scopeSearch($query, ?string $term)
     {
         $term = trim((string) $term);
         if ($term === '') {
             return $query;
         }
-        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
         // Adjust searchable columns after generation if necessary
         $columns = array_filter([
             'code',
             'address',
             'type',
-            'health_status'
+            'health_status',
         ]);
         if (empty($columns)) {
             return $query; // No columns defined; user will customize.
         }
+
         return $query->where(function ($q) use ($columns, $like) {
             foreach ($columns as $idx => $col) {
                 $method = $idx === 0 ? 'where' : 'orWhere';

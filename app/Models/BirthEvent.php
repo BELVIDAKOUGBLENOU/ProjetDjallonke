@@ -34,6 +34,7 @@ class BirthEvent extends Model
     {
         return $this->belongsTo(Animal::class, 'father_id');
     }
+
     public static function getTableName()
     {
         return (new self)->getTable();

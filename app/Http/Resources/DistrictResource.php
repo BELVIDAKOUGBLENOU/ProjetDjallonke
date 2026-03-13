@@ -24,13 +24,13 @@ class DistrictResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        $data['uid'] = '' . $this->id;
+        $data['uid'] = ''.$this->id;
         $model = $this->resource;
         if ($this->imbriqued) {
             $subDistricts = $this->whenLoaded('subDistricts');
-            if (!$subDistricts instanceof \Illuminate\Http\Resources\MissingValue) {
+            if (! $subDistricts instanceof \Illuminate\Http\Resources\MissingValue) {
                 $subDistrictsResource = SubDistrictResource::collection($subDistricts);
-                $subDistrictsResource->each(fn($r) => $r->setImbriqued($this->imbriqued));
+                $subDistrictsResource->each(fn ($r) => $r->setImbriqued($this->imbriqued));
                 $data['sub_districts'] = $subDistrictsResource;
             }
         }

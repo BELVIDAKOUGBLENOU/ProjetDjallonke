@@ -26,7 +26,7 @@ class PremiseFactory extends Factory
             'community_id' => Community::inRandomOrder()->first()->id ?? Community::factory(),
             'code' => fake()->unique()->bothify('PR-####'),
             'address' => fake()->address(),
-            'gps_coordinates' => fake()->latitude() . ',' . fake()->longitude(),
+            'gps_coordinates' => fake()->latitude().','.fake()->longitude(),
             'type' => fake()->randomElement(['FARM', 'MARKET', 'SLAUGHTERHOUSE', 'PASTURE', 'TRANSPORT']),
             'health_status' => fake()->randomElement(['Healthy', 'Quarantined', 'Unknown']),
         ];

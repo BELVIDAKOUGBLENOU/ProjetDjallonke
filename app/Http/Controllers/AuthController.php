@@ -24,12 +24,11 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Les identifiants fournis sont incorrects.'],
             ]);
         }
-
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -53,6 +52,7 @@ class AuthController extends Controller
         }
 
         $at->delete();
+
         return response()->json(['message' => 'Déconnexion réussie']);
     }
 

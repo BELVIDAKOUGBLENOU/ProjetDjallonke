@@ -17,18 +17,19 @@ class CountryResource extends JsonResource
     public function setImbriqued(bool $imbriqued): static
     {
         $this->imbriqued = $imbriqued;
+
         return $this;
     }
 
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        $data["uid"] = '' . $this->id;
+        $data['uid'] = ''.$this->id;
         if ($this->imbriqued) {
             $districts = $this->whenLoaded('districts');
-            if (!$districts instanceof \Illuminate\Http\Resources\MissingValue) {
+            if (! $districts instanceof \Illuminate\Http\Resources\MissingValue) {
                 $districtsResource = DistrictResource::collection($districts);
-                $districtsResource->each(fn($r) => $r->setImbriqued($this->imbriqued));
+                $districtsResource->each(fn ($r) => $r->setImbriqued($this->imbriqued));
                 $data['districts'] = $districtsResource;
             }
         }

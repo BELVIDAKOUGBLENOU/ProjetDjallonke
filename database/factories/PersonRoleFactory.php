@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\PersonRole;
-use App\Models\Person;
 use App\Models\Animal;
+use App\Models\Person;
+use App\Models\PersonRole;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 class PersonRoleFactory extends Factory

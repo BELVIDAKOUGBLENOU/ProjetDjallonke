@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\User;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Support\Facades\Session;
 
 class MobileAuthController extends Controller
 {
-    static function isRedirectionAvailable(): bool
+    public static function isRedirectionAvailable(): bool
     {
-        return (Session::has('redirect_to') && !empty(Session::get('redirect_to')));
+        return Session::has('redirect_to') && ! empty(Session::get('redirect_to'));
 
     }
-    static function redirectForFlutter(User $user, $default = null)
+
+    public static function redirectForFlutter(User $user, $default = null)
     {
         $isAllowed = false;
         // dd($user->mobileAppCommunities()->get());
@@ -33,16 +33,18 @@ class MobileAuthController extends Controller
             //     ->header('Location', $redirectTo);
             // return redirect()->away($redirectTo);
 
-            return response()->view('auth.google-redirect', ['redirect_url' => $redirectTo, "user" => $user]);
-        } elseif (!$isAllowed) {
+            return response()->view('auth.google-redirect', ['redirect_url' => $redirectTo, 'user' => $user]);
+        } elseif (! $isAllowed) {
             // $token = $user->createToken('Google')->plainTextToken;
             auth()->logout();
-            return response()->view('auth.mobile-not-authorized', );
+
+            return response()->view('auth.mobile-not-authorized');
         }
 
     }
+
     //
-    static function storeRedirectPath()
+    public static function storeRedirectPath()
     {
 
         if (request()->has('redirect_uri')) {

@@ -4,15 +4,15 @@ namespace App\Exports\Sheets;
 
 use App\Models\Animal;
 use Carbon\Carbon;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class AnimalsFilteredSheet implements FromQuery, WithTitle, WithHeadings, WithMapping
+class AnimalsFilteredSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
 {
     protected $filters;
+
     protected $communityId;
 
     public function __construct($filters, $communityId)
@@ -32,11 +32,11 @@ class AnimalsFilteredSheet implements FromQuery, WithTitle, WithHeadings, WithMa
             });
         }
 
-        if (!empty($this->filters['q'])) {
+        if (! empty($this->filters['q'])) {
             $query->search($this->filters['q']);
         }
 
-        if (!empty($this->filters['premises_id'])) {
+        if (! empty($this->filters['premises_id'])) {
             $query->where('premises_id', $this->filters['premises_id']);
         }
 
@@ -54,7 +54,7 @@ class AnimalsFilteredSheet implements FromQuery, WithTitle, WithHeadings, WithMa
             'Sexe',
             'Age',
             'Date Naissance',
-            'Statut'
+            'Statut',
         ];
     }
 
@@ -62,12 +62,12 @@ class AnimalsFilteredSheet implements FromQuery, WithTitle, WithHeadings, WithMa
     {
         // Identifiers: Type : Code | Type 2 : Code 2
         $identifiers = $animal->identifiers->map(function ($id) {
-            return $id->type . ' : ' . $id->code;
+            return $id->type.' : '.$id->code;
         })->implode(' | ');
 
         // Affiliations: Role : UID | Role 2 : UID
         $affiliations = $animal->personRoles->map(function ($role) {
-            return $role->role_type . ' : ' . ($role->person ? $role->person->uid : 'N/A');
+            return $role->role_type.' : '.($role->person ? $role->person->uid : 'N/A');
         })->implode(' | ');
 
         // Age calculation

@@ -2,26 +2,25 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
+use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
+use App\Http\Resources\PersonRoleResource;
 use App\Models\Animal;
 use App\Models\Person;
 use App\Models\PersonRole;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\PersonRoleResource;
-use App\Http\Middleware\SetCommunityContextAPI;
 
 class PersonRoleSyncController extends Controller
 {
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
-        $this->middleware(SetCommunityContextAPI::class);
 
+        $this->middleware(SetCommunityContextAPI::class);
 
         // Middleware pour permissions CRUD
         $table = Person::getTableName();
@@ -31,6 +30,7 @@ class PersonRoleSyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +41,7 @@ class PersonRoleSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -77,7 +77,7 @@ class PersonRoleSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->updated_at->toDateTimeString(),
-                'uid' => $last->uid
+                'uid' => $last->uid,
             ];
         }
 
@@ -85,7 +85,7 @@ class PersonRoleSyncController extends Controller
             'data' => PersonRoleResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 
@@ -137,7 +137,6 @@ class PersonRoleSyncController extends Controller
         //
     }
 
-
     public function push(Request $request): JsonResponse
     {
 
@@ -145,7 +144,7 @@ class PersonRoleSyncController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date',
         ]);
 
         $applied = [];
@@ -166,6 +165,7 @@ class PersonRoleSyncController extends Controller
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -175,6 +175,7 @@ class PersonRoleSyncController extends Controller
                 if (!$person || !$animal) {
                     DB::rollBack();
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Person or Animal not found'];
+
                     continue;
                 }
 
@@ -183,6 +184,7 @@ class PersonRoleSyncController extends Controller
                         if ($item['version'] <= $existing->version) {
                             $conflicts[] = ['uid' => $item['uid'], 'server_data' => new PersonRoleResource($existing)];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -193,6 +195,7 @@ class PersonRoleSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -206,6 +209,7 @@ class PersonRoleSyncController extends Controller
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -214,6 +218,7 @@ class PersonRoleSyncController extends Controller
                 if ($clientVersion <= $serverVersion) {
                     $conflicts[] = ['uid' => $item['uid'], 'server_data' => new PersonRoleResource($existing)];
                     DB::rollBack();
+
                     continue;
                 }
 

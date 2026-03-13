@@ -2,27 +2,26 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\Event;
+use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
+use App\Http\Resources\DeathEventResource;
 use App\Models\Animal;
 use App\Models\DeathEvent;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Event;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\DeathEventResource;
-use App\Http\Middleware\SetCommunityContextAPI;
 
 class DeathEventSyncController extends Controller
 {
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
-        $this->middleware(SetCommunityContextAPI::class);
 
+        $this->middleware(SetCommunityContextAPI::class);
 
         // Middleware pour permissions CRUD
         $table = DeathEvent::getTableName();
@@ -32,6 +31,7 @@ class DeathEventSyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     public function pull(Request $request): JsonResponse
     {
         $communityId = getPermissionsTeamId();
@@ -39,7 +39,7 @@ class DeathEventSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -79,7 +79,7 @@ class DeathEventSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->event->updated_at->toDateTimeString(),
-                'uid' => $last->event->uid
+                'uid' => $last->event->uid,
             ];
         }
 
@@ -87,7 +87,7 @@ class DeathEventSyncController extends Controller
             'data' => DeathEventResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 
@@ -97,7 +97,7 @@ class DeathEventSyncController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date|before_or_equal:now'
+            'data.*.deleted_at' => 'nullable|date|before_or_equal:now',
         ]);
 
         $applied = [];
@@ -120,6 +120,7 @@ class DeathEventSyncController extends Controller
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -128,6 +129,7 @@ class DeathEventSyncController extends Controller
                 if (!$animal) {
                     DB::rollBack();
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
+
                     continue;
                 }
 
@@ -136,9 +138,10 @@ class DeathEventSyncController extends Controller
                         if ($item['version'] <= $existingEvent->version) {
                             $conflicts[] = [
                                 'uid' => $item['uid'],
-                                'server_data' => new DeathEventResource($existingEvent->deathEvent)
+                                'server_data' => new DeathEventResource($existingEvent->deathEvent),
                             ];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -149,6 +152,7 @@ class DeathEventSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -169,6 +173,7 @@ class DeathEventSyncController extends Controller
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -177,6 +182,7 @@ class DeathEventSyncController extends Controller
                 if ($clientVersion <= $serverVersion) {
                     $conflicts[] = ['uid' => $item['uid'], 'server_data' => new DeathEventResource($existingEvent->deathEvent)];
                     DB::rollBack();
+
                     continue;
                 }
 

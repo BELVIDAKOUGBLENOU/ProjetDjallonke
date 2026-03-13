@@ -2,22 +2,19 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
+use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
+use App\Http\Resources\AnimalResource;
 use App\Models\Animal;
 use App\Models\Premise;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\AnimalRequest;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Resources\AnimalResource;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Routing\Controllers\Middleware;
-use App\Http\Middleware\SetCommunityContextAPI;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class AnimalSyncController extends Controller
     // implements HasMiddleware
@@ -25,7 +22,7 @@ class AnimalSyncController extends Controller
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextAPI::class);
         $this->middleware(function ($request, $next) {
             $animalId = $request->route('api_animal');
@@ -33,9 +30,9 @@ class AnimalSyncController extends Controller
                 $animal = ($animalId instanceof Animal) ? $animalId : Animal::findOrFail($animalId);
                 setPermissionsTeamId($animal->community_id);
             }
+
             return $next($request);
         });
-
 
         // Middleware pour permissions CRUD
         $table = Animal::getTableName();
@@ -53,7 +50,7 @@ class AnimalSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -63,8 +60,7 @@ class AnimalSyncController extends Controller
         $query = Animal::query()
             ->whereHas(
                 'premise',
-                fn($q) =>
-                $q->where('community_id', $communityId)
+                fn($q) => $q->where('community_id', $communityId)
             )
             ->with('premise')
             ->orderBy('updated_at')
@@ -90,7 +86,7 @@ class AnimalSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->updated_at->toDateTimeString(),
-                'uid' => $last->uid
+                'uid' => $last->uid,
             ];
         }
 
@@ -98,11 +94,9 @@ class AnimalSyncController extends Controller
             'data' => AnimalResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
-
-
 
     public function push(Request $request): JsonResponse
     {
@@ -113,7 +107,7 @@ class AnimalSyncController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date',
         ]);
 
         $applied = [];
@@ -137,19 +131,19 @@ class AnimalSyncController extends Controller
                     'string',
                     Rule::exists('premises', 'uid')->where(function ($query) use ($communityId) {
                         $query->where('community_id', $communityId);
-                    })
+                    }),
                 ],
             ], [
-                'premises_uid.exists' => 'The specified premises does not exist in the community.'
+                'premises_uid.exists' => 'The specified premises does not exist in the community.',
             ]);
-
 
             if ($validator->fails()) {
                 $errors[] = [
                     'uid' => $uid,
                     'code' => 'VALIDATION_ERROR',
-                    'message' => $validator->errors()->first()
+                    'message' => $validator->errors()->first(),
                 ];
+
                 continue;
             }
 
@@ -164,9 +158,10 @@ class AnimalSyncController extends Controller
                         if ($item['version'] <= $existing->version) {
                             $conflicts[] = [
                                 'uid' => $item['uid'],
-                                'server_data' => new AnimalResource($existing)
+                                'server_data' => new AnimalResource($existing),
                             ];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -177,6 +172,7 @@ class AnimalSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -184,7 +180,7 @@ class AnimalSyncController extends Controller
                  * CREATE
                  * ========================= */
                 if (!$existing) {
-                    $animal = new Animal();
+                    $animal = new Animal;
                     $animal->uid = $item['uid'];
                     $animal->fill(
                         $this->mapAnimalData($item, $communityId)
@@ -195,6 +191,7 @@ class AnimalSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -204,9 +201,10 @@ class AnimalSyncController extends Controller
                 if ($item['version'] <= $existing->version) {
                     $conflicts[] = [
                         'uid' => $item['uid'],
-                        'server_data' => new AnimalResource($existing)
+                        'server_data' => new AnimalResource($existing),
                     ];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -227,7 +225,7 @@ class AnimalSyncController extends Controller
                 $errors[] = [
                     'uid' => $item['uid'],
                     'code' => 'SERVER_ERROR',
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
                 ];
             }
         }
@@ -237,16 +235,14 @@ class AnimalSyncController extends Controller
             'applied' => $applied,
             'conflicts' => $conflicts,
             'errors' => $errors,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 
     /**
      * Map the input data to the Animal model attributes.
      *
-     * @param array $item
-     * @param int|string $communityId
-     * @return array
+     * @param  int|string  $communityId
      */
     private function mapAnimalData(array $item, $communityId): array
     {
@@ -255,7 +251,7 @@ class AnimalSyncController extends Controller
             'sex' => $item['sex'] ?? null,
             'birth_date' => $item['birth_date'] ?? null,
             'life_status' => $item['life_status'] ?? null,
-            'sex' => !is_null($item['sex']) ? strtoupper(substr($item['sex'], 0, 1)) : null
+            'sex' => !is_null($item['sex']) ? strtoupper(substr($item['sex'], 0, 1)) : null,
         ];
 
         // Resolve premises_uid to premises_id

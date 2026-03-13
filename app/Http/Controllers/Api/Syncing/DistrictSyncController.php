@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\District;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Requests\DistrictRequest;
 use App\Http\Resources\DistrictResource;
+use App\Models\District;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\Middleware;
-use App\Http\Middleware\SetCommunityContextAPI;
-use Illuminate\Routing\Controllers\HasMiddleware;
 
 class DistrictSyncController extends Controller
 {
@@ -45,7 +44,7 @@ class DistrictSyncController extends Controller
         $districts = $districts->get();
 
         $resource = DistrictResource::collection($districts);
-        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
+        $resource->each(fn ($r) => $r->setImbriqued($imbriqued));
 
         return response()->json($resource);
     }
@@ -70,7 +69,7 @@ class DistrictSyncController extends Controller
         $districts = $districts->paginate();
 
         $resource = DistrictResource::collection($districts);
-        $resource->each(fn($r) => $r->setImbriqued($imbriqued));
+        $resource->each(fn ($r) => $r->setImbriqued($imbriqued));
 
         return $resource;
     }

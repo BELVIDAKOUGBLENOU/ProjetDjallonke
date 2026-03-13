@@ -26,7 +26,7 @@ class PersonsExport implements FromQuery, WithHeadings, WithMapping
             ->withCount([
                 'personRoles as owned_animals_count' => function ($query) {
                     $query->where('role_type', 'OWNER');
-                }
+                },
             ])
             ->withCount('personRoles as related_animals_count');
 

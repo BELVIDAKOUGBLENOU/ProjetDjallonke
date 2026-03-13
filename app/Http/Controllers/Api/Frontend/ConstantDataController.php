@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CountryResource;
 use App\Models\Animal;
 use App\Models\AnimalIdentifier;
-use App\Models\Community;
 use App\Models\CommunityMembership;
 use App\Models\Country;
 use App\Models\Event;
@@ -16,7 +15,6 @@ use App\Models\PersonRole;
 use App\Models\Premise;
 use App\Models\ReproductionEvent;
 use App\Models\TransactionEvent;
-use PHPUnit\Framework\Constraint\Count;
 
 class ConstantDataController extends Controller
 {
@@ -26,11 +24,12 @@ class ConstantDataController extends Controller
             ->with('districts.subDistricts.villages')
             ->orderBy('name')->get();
         $data = CountryResource::collection($countries);
-        $data->each(fn($r) => $r->setImbriqued(true));
+        $data->each(fn ($r) => $r->setImbriqued(true));
+
         return $data;
     }
 
-    function getConstants()
+    public function getConstants()
     {
         $data = [];
         $data['community_roles'] = CommunityMembership::ROLES;

@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PersonsExport;
+use App\Exports\PersonsImportErrorsExport;
+use App\Exports\PersonsTemplateExport;
+use App\Http\Requests\PersonRequest;
+use App\Imports\PersonsImport;
 use App\Models\Person;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\PersonRequest;
-use App\Models\User;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PersonsExport;
-use App\Exports\PersonsTemplateExport;
-use App\Exports\PersonsImportErrorsExport;
-use App\Imports\PersonsImport;
-use Illuminate\Support\Facades\Validator;
 
 class PersonController extends Controller
 {
-
     public function __construct()
     {
         // Middleware pour authentification
@@ -32,6 +31,7 @@ class PersonController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -39,20 +39,19 @@ class PersonController extends Controller
     {
         $q = $request->string('q')->toString();
         $communityId = getPermissionsTeamId();
-        $people = Person::
-            when($communityId, function ($query) use ($communityId) {
-                $query->whereHas('personRoles', function ($q) use ($communityId) {
-                    $q->whereHas('animal', function ($q) use ($communityId) {
-                        $q->whereHas('premise', function ($q) use ($communityId) {
-                            $q->where('community_id', $communityId);
-                        });
+        $people = Person::when($communityId, function ($query) use ($communityId) {
+            $query->whereHas('personRoles', function ($q) use ($communityId) {
+                $q->whereHas('animal', function ($q) use ($communityId) {
+                    $q->whereHas('premise', function ($q) use ($communityId) {
+                        $q->where('community_id', $communityId);
                     });
                 });
-            })->
+            });
+        })->
             search($q)
-            ->orderByDesc('created_at')
-            ->paginate()
-            ->appends(['q' => $q]);
+                ->orderByDesc('created_at')
+                ->paginate()
+                ->appends(['q' => $q]);
 
         return view('person.index', compact('people', 'q'))
             ->with('i', ($request->input('page', 1) - 1) * $people->perPage());
@@ -63,7 +62,7 @@ class PersonController extends Controller
      */
     public function create(): View
     {
-        $person = new Person();
+        $person = new Person;
 
         return view('person.create', compact('person'));
     }
@@ -118,7 +117,7 @@ class PersonController extends Controller
             $data = Person::findOrFail($id);
             if (User::where('person_id', $data->id)->exists()) {
                 return Redirect::back()
-                    ->with('error', "Impossible de supprimer cette donnée car elle est liée à un utilisateur.");
+                    ->with('error', 'Impossible de supprimer cette donnée car elle est liée à un utilisateur.');
             }
             $data->delete();
 
@@ -210,12 +209,13 @@ class PersonController extends Controller
 
         session()->forget(['import_valid_data', 'import_invalid_data']);
 
-        return redirect()->route('people.index')->with('success', count($validData) . ' personnes importées avec succès.');
+        return redirect()->route('people.index')->with('success', count($validData).' personnes importées avec succès.');
     }
 
     public function downloadErrors()
     {
         $invalidData = session()->get('import_invalid_data', []);
+
         return Excel::download(new PersonsImportErrorsExport($invalidData), 'import_errors.xlsx');
     }
 }

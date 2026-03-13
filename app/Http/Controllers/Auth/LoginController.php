@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Auth;
-use App\Http\Controllers\Auth\RemoteAuthController;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -42,14 +42,17 @@ class LoginController extends Controller
                 if (RemoteAuthController::isRedirectionAvailable()) {
                     return RemoteAuthController::redirectToExtern(Auth::user());
                 }
+
                 return redirect()->intended($this->redirectPath());
             }
+
             return $next($request);
         })->only('showLoginForm');
 
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
     }
+
     /**
      * Show the application's login form.
      *
@@ -58,12 +61,12 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         RemoteAuthController::storeRedirectPath();
+
         return view('auth.login');
     }
 
     protected function authenticated(Request $request, $user)
     {
-
 
         if (RemoteAuthController::isRedirectionAvailable()) {
             return RemoteAuthController::redirectToExtern(Auth::user());

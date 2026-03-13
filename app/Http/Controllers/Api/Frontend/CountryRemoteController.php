@@ -12,9 +12,8 @@ class CountryRemoteController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
-        $this->middleware(SetCommunityContextFrontend::class);
 
+        $this->middleware(SetCommunityContextFrontend::class);
 
         $table = Country::getTableName();
         $this->middleware("permission:list $table")->only('index');
@@ -23,8 +22,8 @@ class CountryRemoteController extends Controller
         $this->middleware("permission:update $table")->only(['update']);
         $this->middleware("permission:delete $table")->only('destroy');
 
-
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -52,7 +51,8 @@ class CountryRemoteController extends Controller
             ->appends(['q' => $q]);
         $resource = CountryResource::collection($countries);
         $resource->each(fn($r) => $r->setImbriqued($imbriqued));
-        return ($resource);
+
+        return $resource;
     }
 
     /**
@@ -79,6 +79,7 @@ class CountryRemoteController extends Controller
     public function show(string $country)
     {
         $country = Country::where('id', $country)->firstOrFail();
+
         return new CountryResource($country);
     }
 
@@ -111,7 +112,7 @@ class CountryRemoteController extends Controller
         // Basic check for relations before delete
         if ($country->communities()->exists() || $country->districts()->exists()) {
             return response()->json([
-                'message' => 'Impossible de supprimer ce pays car il est lié à d\'autres enregistrements.'
+                'message' => 'Impossible de supprimer ce pays car il est lié à d\'autres enregistrements.',
             ], 422);
         }
 
@@ -120,4 +121,3 @@ class CountryRemoteController extends Controller
         return response()->noContent();
     }
 }
-

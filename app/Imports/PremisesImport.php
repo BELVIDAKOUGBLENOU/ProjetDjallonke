@@ -8,9 +8,6 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class PremisesImport implements ToCollection, WithHeadingRow
 {
-    /**
-     * @param Collection $collection
-     */
     public function collection(Collection $collection)
     {
         return $collection;

@@ -10,6 +10,7 @@ class EvidenceFile extends Model
 {
     /** @use HasFactory<\Database\Factories\EvidenceFileFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     protected $fillable = [
@@ -17,7 +18,7 @@ class EvidenceFile extends Model
         'url',
         'file_type',
         'uid',
-        'version'
+        'version',
     ];
 
     public function event()

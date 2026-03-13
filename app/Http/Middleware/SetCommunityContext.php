@@ -18,7 +18,7 @@ class SetCommunityContext
     {
         $communityId = session('selected_community');
         $communityIdFromUser = $request->has('community_id') ? $request->input('community_id') : null;
-        $user = auth()->user();
+        $user = $request->user();
         // Vérifie si l'utilisateur a au moins un rôle global (team 0)
         $hasGlobalRole = false;
         if ($user) {
@@ -36,6 +36,7 @@ class SetCommunityContext
             session(['selected_community' => 0]);
             $communityId = 0;
             setPermissionsTeamId(0);
+
             return $next($request);
         }
 
@@ -44,7 +45,7 @@ class SetCommunityContext
             session(['selected_community' => $communityIdFromUser]);
         }
 
-        $user = auth()->user();
+        $user = $request->user();
 
         // If no community selected, or user is not a member, select first
         if (!$communityId) {
@@ -59,11 +60,12 @@ class SetCommunityContext
 
         return $next($request);
     }
+
     public static function selectFirst()
     {
 
-        if (auth()->check()) {
-            $user = auth()->user();
+        $user = request()->user();
+        if ($user) {
             $firstCommunity = $user->communities()->first();
             if ($firstCommunity) {
                 session(['selected_community' => $firstCommunity->id]);

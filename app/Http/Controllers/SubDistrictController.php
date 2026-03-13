@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
+use App\Http\Requests\SubDistrictRequest;
 use App\Models\SubDistrict;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
-use App\Http\Requests\SubDistrictRequest;
+use Illuminate\View\View;
 
 class SubDistrictController extends Controller
 {
-
     /* public function __construct()
     {
         // Middleware pour authentification
@@ -48,7 +47,7 @@ class SubDistrictController extends Controller
      */
     public function create(): View
     {
-        $subDistrict = new SubDistrict();
+        $subDistrict = new SubDistrict;
         $districts = \App\Models\District::join('countries', 'districts.country_id', '=', 'countries.id')
             ->select('districts.id', DB::raw("CONCAT(districts.name, ' (Pays : ', countries.name, ')') as name"))
             ->get();

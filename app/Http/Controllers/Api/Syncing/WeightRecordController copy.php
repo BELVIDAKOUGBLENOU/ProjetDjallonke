@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Event;
-use App\Models\Animal;
-use App\Models\WeightRecord;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\WeightRecordRequest;
 use App\Http\Resources\WeightRecordResource;
+use App\Models\Animal;
+use App\Models\Event;
+use App\Models\WeightRecord;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class WeightRecordController extends Controller
 {
@@ -32,7 +32,7 @@ class WeightRecordController extends Controller
     {
         $since = $request->validate([
             'since' => 'nullable|date_format:Y-m-d H:i:s',
-        ])['since'] ?? "1970-01-01 00:00:00";
+        ])['since'] ?? '1970-01-01 00:00:00';
 
         $query = WeightRecord::whereHas('event', function ($qe) {
             $communityId = getPermissionsTeamId();
@@ -120,19 +120,21 @@ class WeightRecordController extends Controller
 
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $uid, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
+
                     continue;
                 }
 
                 DB::beginTransaction();
                 $existingEvent = Event::where('uid', $uid)->first();
                 $animal = Animal::where('uid', $item['animal_uid'])->first();
-                if (!$animal) {
+                if (! $animal) {
                     DB::rollBack();
                     $errors[] = ['uid' => $uid, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
+
                     continue;
                 }
 
-                if (!$existingEvent) {
+                if (! $existingEvent) {
                     $event = Event::create([
                         'uid' => $uid,
                         'version' => $item['version'],
@@ -148,6 +150,7 @@ class WeightRecordController extends Controller
                     ]);
                     $applied[] = $uid;
                     DB::commit();
+
                     continue;
                 }
 
@@ -156,6 +159,7 @@ class WeightRecordController extends Controller
                 if ($clientVersion <= $serverVersion) {
                     $conflicts[] = ['uid' => $uid, 'server_data' => (new WeightRecordResource($existingEvent->weightRecord))->response()->getData(true)];
                     DB::rollBack();
+
                     continue;
                 }
 

@@ -14,12 +14,13 @@ class HealthEventResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        //load ifmissing event relation
+        // load ifmissing event relation
         $this->loadMissing('event');
         $eventField = $this->resource->event->toArray();
         $data = $eventField;
         // merge arrays
         $data = array_merge($data, parent::toArray($request));
+
         return $data;
     }
 }

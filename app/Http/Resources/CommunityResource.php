@@ -5,8 +5,8 @@ namespace App\Http\Resources;
 use App\Models\CommunityMembership;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 
 class CommunityResource extends JsonResource
 {
@@ -19,7 +19,7 @@ class CommunityResource extends JsonResource
     {
         $data = parent::toArray($request);
         unset($data['created_by'], $data['updated_by']);
-        if (!is_null($this->pivot)) {
+        if (! is_null($this->pivot)) {
             $user_id = $this->pivot->user_id ?? null;
             $community_id = $this->pivot->community_id ?? null;
             $data['role'] = $this->pivot?->role ?? null;
@@ -47,8 +47,9 @@ class CommunityResource extends JsonResource
         }
         $this->loadMissing('country');
         $data['country'] = CountryResource::make($this->whenLoaded('country'));
-        $data['uid'] = '' . $this->id;
+        $data['uid'] = ''.$this->id;
         $data['version'] = 1;
+
         return $data;
     }
 }

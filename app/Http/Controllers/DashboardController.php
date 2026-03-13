@@ -22,10 +22,11 @@ class DashboardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextFrontend::class);
 
     }
+
     /**
      * Dashboard pour le Super-admin (Vue Globale)
      */
@@ -101,6 +102,7 @@ class DashboardController extends Controller
         // Note: Adapter les noms de rôles selon votre base de données (ex: 'Community Admin' vs 'COMMUNITY_ADMIN')
         if ($roles->contains('COMMUNITY_ADMIN') || $roles->contains('COMMUNITY_ADMIN')) {
             $com = Community::findOrFail(getPermissionsTeamId());
+
             return $this->getCommunityAdminStats($com);
         } elseif ($roles->intersect(['VET', 'TECHNICIAN', 'RESEARCHER', 'Veterinaire', 'Technician', 'Researcher'])->isNotEmpty()) {
             return $this->getTechnicalStats($user);
@@ -178,7 +180,7 @@ class DashboardController extends Controller
         $eventsSummary = [
             'births' => $births,
             'deaths' => $deaths,
-            'sales' => $sales
+            'sales' => $sales,
         ];
 
         // 3. Listes & Actions
@@ -195,13 +197,13 @@ class DashboardController extends Controller
                 'members_count' => $communityMembers,
                 'livestock_count' => $communityLivestock,
                 'active_premises' => $activePremises,
-                'mortality_rate' => $mortalityRate . '%'
+                'mortality_rate' => $mortalityRate . '%',
             ],
             'charts' => [
                 'population_structure' => $populationStructure,
-                'events_summary' => $eventsSummary
+                'events_summary' => $eventsSummary,
             ],
-            'recent_registrations' => $recentRegistrations
+            'recent_registrations' => $recentRegistrations,
         ]);
     }
 
@@ -249,7 +251,7 @@ class DashboardController extends Controller
             ],
             'performance_metrics' => [
                 'avg_weight' => round($avgWeight, 2),
-            ]
+            ],
         ]);
     }
 }

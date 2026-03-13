@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -23,7 +23,7 @@ class UserController extends Controller
         $this->middleware(function ($request, $next) {
             $user = auth()->user();
 
-            if (!($user->hasRole('Super-admin'))) {
+            if (! ($user->hasRole('Super-admin'))) {
                 abort(403, 'Unauthorized action.');
             }
 
@@ -32,10 +32,9 @@ class UserController extends Controller
             if ($userId) {
                 $userRoute = ($userId instanceof User) ? $userId : User::findOrFail($userId);
 
-
-                if (is_null($userRoute->entreprise_id) && !$user->hasRole('Super-admin')) {
+                if (is_null($userRoute->entreprise_id) && ! $user->hasRole('Super-admin')) {
                     abort(403, 'Only Super-admin can manage global roles.');
-                } elseif (!is_null($userRoute->entreprise_id) && $user->entreprise_id != $userRoute->entreprise_id && !$user->hasRole('Super-admin')) {
+                } elseif (! is_null($userRoute->entreprise_id) && $user->entreprise_id != $userRoute->entreprise_id && ! $user->hasRole('Super-admin')) {
                     abort(403, 'Ceci ne vous concerne pas.');
                 }
 
@@ -44,6 +43,7 @@ class UserController extends Controller
             return $next($request);
         })->except('stopImpersonate');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -51,7 +51,7 @@ class UserController extends Controller
     {
         $q = $request->string('q')->toString();
         $users = User::query();
-        if (!auth()->user()->hasRole('Super-admin')) {
+        if (! auth()->user()->hasRole('Super-admin')) {
             $users = $users->where('entreprise_id', auth()->user()->entreprise_id);
         }
 
@@ -71,11 +71,11 @@ class UserController extends Controller
      */
     public function create(): View
     {
-        $user = new User();
-        $roles = Role::whereIn("name", ['Super-admin'])->get();
+        $user = new User;
+        $roles = Role::whereIn('name', ['Super-admin'])->get();
         $permissions = Permission::all();
-        if (!auth()->user()->hasRole('Super-admin')) {
-            $roles = Role::whereNotIn("name", ['Super-admin'])->get();
+        if (! auth()->user()->hasRole('Super-admin')) {
+            $roles = Role::whereNotIn('name', ['Super-admin'])->get();
             $permissions = Role::findByName('Administrateur', 'web')->permissions;
         }
 
@@ -94,7 +94,7 @@ class UserController extends Controller
         $data['password'] = Hash::make($plainPassword);
         DB::beginTransaction();
         try {
-            //code...
+            // code...
             if (User::where('email', $data['email'])->exists()) {
                 $user = User::where('email', $data['email'])->first();
             } else {
@@ -103,7 +103,7 @@ class UserController extends Controller
 
             if ($request->has('roles')) {
                 setPermissionsTeamId(0);
-                if (!(auth()->user()->getRoleNames()->count() > 0)) {
+                if (! (auth()->user()->getRoleNames()->count() > 0)) {
                     setPermissionsTeamId(null);
                 }
                 $user->syncRoles($request->roles);
@@ -117,13 +117,15 @@ class UserController extends Controller
             Mail::to($user->email)->send(new \App\Mail\NewMemberCredentials($user, $plainPassword));
 
             // Envoyer une notification in-app pour recommander le changement de mot de passe
-            $user->notifyNow(new \App\Notifications\PasswordChangeNotification());
+            $user->notifyNow(new \App\Notifications\PasswordChangeNotification);
             DB::commit();
+
             return Redirect::route('users.index')
                 ->with('success', 'Utilisateur créé avec succès. Un mot de passe temporaire a été envoyé par email.');
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             DB::rollback();
+
             return Redirect::route('users.index')
                 ->with('error', $th->getMessage());
         }
@@ -184,7 +186,7 @@ class UserController extends Controller
 
     public function impersonate($id)
     {
-        if (!auth()->user()->hasRole('Super-admin')) {
+        if (! auth()->user()->hasRole('Super-admin')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -205,8 +207,10 @@ class UserController extends Controller
         if (session()->has('impersonate')) {
             auth()->loginUsingId(session('impersonate'));
             session()->forget('impersonate');
+
             return redirect()->route('users.index')->with('success', 'Retour au compte administrateur');
         }
+
         return redirect()->route('home');
     }
 }

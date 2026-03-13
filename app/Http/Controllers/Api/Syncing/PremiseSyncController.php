@@ -2,30 +2,27 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use Exception;
-use App\Models\Premise;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Requests\PremiseRequest;
 use App\Http\Resources\PremiseResource;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Premise;
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\Middleware;
-use App\Http\Middleware\SetCommunityContextAPI;
-use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class PremiseSyncController extends Controller
 {
-
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextAPI::class);
         $this->middleware(function ($request, $next) {
             $premisesId = $request->route('api_premise');
@@ -37,9 +34,9 @@ class PremiseSyncController extends Controller
             if ($premise) {
                 setPermissionsTeamId($premise->community_id);
             }
+
             return $next($request);
         });
-
 
         // Middleware pour permissions CRUD
         $table = Premise::getTableName();
@@ -49,6 +46,7 @@ class PremiseSyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     public function getAllData(Request $request): JsonResponse
     {
         $premises = Premise::where('community_id', getPermissionsTeamId())->get();
@@ -66,7 +64,7 @@ class PremiseSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -99,7 +97,7 @@ class PremiseSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->updated_at->toDateTimeString(),
-                'uid' => $last->uid
+                'uid' => $last->uid,
             ];
         }
 
@@ -107,7 +105,7 @@ class PremiseSyncController extends Controller
             'data' => PremiseResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 
@@ -234,7 +232,7 @@ class PremiseSyncController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date',
         ]);
 
         $applied = [];
@@ -261,6 +259,7 @@ class PremiseSyncController extends Controller
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -271,9 +270,10 @@ class PremiseSyncController extends Controller
                         if ($item['version'] <= $existing->version) {
                             $conflicts[] = [
                                 'uid' => $item['uid'],
-                                'server_data' => new PremiseResource($existing)
+                                'server_data' => new PremiseResource($existing),
                             ];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -284,11 +284,12 @@ class PremiseSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
                 if (!$existing) {
-                    $premise = new Premise();
+                    $premise = new Premise;
                     $premise->uid = $item['uid'];
                     $data = [
                         'village_id' => $item['village_id'] ?? null,
@@ -306,6 +307,7 @@ class PremiseSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -313,9 +315,10 @@ class PremiseSyncController extends Controller
                     $conflicts[] = [
                         'uid' => $item['uid'],
                         'server_data' => new PremiseResource($existing),
-                        "local_data" => $item
+                        'local_data' => $item,
                     ];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -337,7 +340,7 @@ class PremiseSyncController extends Controller
                 $errors[] = [
                     'uid' => $item['uid'],
                     'code' => 'SERVER_ERROR',
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
                 ];
             }
         }
@@ -347,7 +350,7 @@ class PremiseSyncController extends Controller
             'applied' => $applied,
             'conflicts' => $conflicts,
             'errors' => $errors,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 }

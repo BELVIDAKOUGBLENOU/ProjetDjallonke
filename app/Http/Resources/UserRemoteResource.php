@@ -19,13 +19,13 @@ class UserRemoteResource extends JsonResource
             return [
                 'id' => $role->id,
                 'name' => $role->name,
-                'guard_name' => $role->guard_name
+                'guard_name' => $role->guard_name,
             ];
         });
         $data['permissions'] = $this->permissions->map(function ($perm) {
             return [
                 'id' => $perm->id,
-                'name' => $perm->name
+                'name' => $perm->name,
             ];
         });
         $data['created_at'] = $this->created_at->format('Y-m-d H:i:s');

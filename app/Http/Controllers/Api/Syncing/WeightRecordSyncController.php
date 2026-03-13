@@ -2,29 +2,28 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\Event;
-use App\Models\Animal;
-use App\Models\WeightRecord;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Requests\WeightRecordRequest;
 use App\Http\Resources\WeightRecordResource;
-use App\Http\Middleware\SetCommunityContextAPI;
+use App\Models\Animal;
+use App\Models\Event;
+use App\Models\WeightRecord;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class WeightRecordSyncController extends Controller
 {
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
-        $this->middleware(SetCommunityContextAPI::class);
 
+        $this->middleware(SetCommunityContextAPI::class);
 
         // Middleware pour permissions CRUD
         $table = WeightRecord::getTableName();
@@ -34,6 +33,7 @@ class WeightRecordSyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     public function getAllData(Request $request): JsonResponse
     {
         $weightRecords = WeightRecord::all();
@@ -51,7 +51,7 @@ class WeightRecordSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -91,7 +91,7 @@ class WeightRecordSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->event->updated_at->toDateTimeString(),
-                'uid' => $last->event->uid
+                'uid' => $last->event->uid,
             ];
         }
 
@@ -99,7 +99,7 @@ class WeightRecordSyncController extends Controller
             'data' => WeightRecordResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 
@@ -147,7 +147,7 @@ class WeightRecordSyncController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date|before_or_equal:now'
+            'data.*.deleted_at' => 'nullable|date|before_or_equal:now',
         ]);
         $user_id = Auth::user()->id;
 
@@ -171,6 +171,7 @@ class WeightRecordSyncController extends Controller
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -179,6 +180,7 @@ class WeightRecordSyncController extends Controller
                 if (!$animal) {
                     DB::rollBack();
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
+
                     continue;
                 }
 
@@ -187,9 +189,10 @@ class WeightRecordSyncController extends Controller
                         if ($item['version'] <= $existingEvent->version) {
                             $conflicts[] = [
                                 'uid' => $item['uid'],
-                                'server_data' => new WeightRecordResource($existingEvent->weightRecord)
+                                'server_data' => new WeightRecordResource($existingEvent->weightRecord),
                             ];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -200,6 +203,7 @@ class WeightRecordSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -221,6 +225,7 @@ class WeightRecordSyncController extends Controller
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -229,6 +234,7 @@ class WeightRecordSyncController extends Controller
                 if ($clientVersion <= $serverVersion) {
                     $conflicts[] = ['uid' => $item['uid'], 'server_data' => new WeightRecordResource($existingEvent->weightRecord)];
                     DB::rollBack();
+
                     continue;
                 }
 

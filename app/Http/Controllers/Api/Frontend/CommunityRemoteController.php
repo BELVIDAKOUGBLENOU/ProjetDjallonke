@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\DB;
 
 class CommunityRemoteController extends Controller
 {
-    //constructeur pour appliquer les middlewares d'authentification et de contexte communautaire
+    // constructeur pour appliquer les middlewares d'authentification et de contexte communautaire
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextFrontend::class)->except(['myCommunities']);
         // Forcer pour avoir les permissions globales (team_id = 0) pour accéder à toutes les communautés
         // setPermissionsTeamId(0);
@@ -50,12 +50,12 @@ class CommunityRemoteController extends Controller
         // unless GlobalScope is applied on Community model.
 
         $communities = $user->communities()->with('country')->orderByDesc('created_at')->get();
+
         return CommunityResource::collection($communities);
     }
 
     public function addMember(Request $request, Community $community)
     {
-
 
         // s'il possede deja des roles global, on l'empeche d'integrer des communautés
         $request->validate([
@@ -70,6 +70,7 @@ class CommunityRemoteController extends Controller
 
         try {
             Community::addMember($community->id, $request->all());
+
             return response()->json(['message' => 'Member added successfully.']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error adding member: ' . $e->getMessage()], 422);
@@ -100,9 +101,11 @@ class CommunityRemoteController extends Controller
             $membership->update(['role' => $request->role]);
 
             DB::commit();
+
             return response()->json(['message' => 'Member role updated successfully.']);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Error updating member role: ' . $e->getMessage()], 422);
         }
     }
@@ -111,12 +114,12 @@ class CommunityRemoteController extends Controller
     {
         try {
             Community::removeMember($community->id, $userId);
+
             return response()->json(['message' => 'Member removed successfully.']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error removing member: ' . $e->getMessage()], 422);
         }
     }
-
 
     /**
      * Display a listing of the resource.
@@ -141,6 +144,7 @@ class CommunityRemoteController extends Controller
             ->orderBy('id', 'ASC'); // Pour l instant on trie par ID mais on peu changer
 
         $data = $query->paginate(10); // Un peu plus de pagination que 1 est mieux
+
         return CommunityResource::collection($data);
     }
 
@@ -194,9 +198,8 @@ class CommunityRemoteController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => "Impossible de supprimer cette donnée car elle est liée à d'autres enregistrements.",
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], Response::HTTP_CONFLICT);
         }
     }
-
 }

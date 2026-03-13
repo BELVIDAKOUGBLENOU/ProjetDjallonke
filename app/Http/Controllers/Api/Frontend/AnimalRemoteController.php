@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Frontend;
 
+use App\Exports\AnimalsWithDetailsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCommunityContextFrontend;
 use App\Http\Requests\AnimalRequest;
@@ -11,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\AnimalsWithDetailsExport;
 
 class AnimalRemoteController extends Controller
 {

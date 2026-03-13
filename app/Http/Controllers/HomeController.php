@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Animal;
 use App\Models\Community;
-use App\Models\User;
 use App\Models\Event;
 use App\Models\Premise;
-use App\Models\Animal;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller

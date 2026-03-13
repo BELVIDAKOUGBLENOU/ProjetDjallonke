@@ -8,9 +8,6 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class PersonsImport implements ToCollection, WithHeadingRow
 {
-    /**
-     * @param Collection $collection
-     */
     public function collection(Collection $collection)
     {
         // This method is required by ToCollection but we are processing in the controller

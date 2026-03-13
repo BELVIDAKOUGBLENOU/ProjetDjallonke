@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Animal;
-use App\Models\Person;
-use App\Models\Premise;
 use App\Models\User;
 use App\Notifications\PasswordChangeNotification;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -30,7 +27,7 @@ class DatabaseSeeder extends Seeder
         ]);
         setPermissionsTeamId(0);
         $admin->assignRole('Super-admin');
-        $admin->notifyNow(new PasswordChangeNotification());
+        $admin->notifyNow(new PasswordChangeNotification);
         setPermissionsTeamId(null);
 
     }

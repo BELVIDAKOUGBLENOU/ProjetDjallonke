@@ -9,12 +9,9 @@ use App\Models\PerformanceRecord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 
 class PerformanceRecordSyncController extends Controller
 {
-
     public function getAllData(Request $request): JsonResponse
     {
         $performanceRecords = PerformanceRecord::all();

@@ -23,7 +23,7 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . ($this->user?->id ?? 'NULL')],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.($this->user?->id ?? 'NULL')],
             'phone' => ['nullable', 'string', 'max:30'],
             'person_id' => ['nullable', 'exists:persons,id'],
             // 'password' => [$this->isMethod('post') ? 'required' : 'nullable', 'string', 'min:6'],

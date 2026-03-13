@@ -18,6 +18,7 @@ class DeathEvent extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
     public static function getTableName()
     {
         return (new self)->getTable();

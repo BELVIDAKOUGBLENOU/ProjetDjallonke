@@ -68,25 +68,25 @@ class CommunityControllerOrion extends Controller
         // Mimic the logic: setPermissionsTeamId(null);
         // We do this to ensure we are looking at communities from a global context
 
-
-        if (!self::canGlobal('list communities')) {
+        if (! self::canGlobal('list communities')) {
             abort(403, 'Unauthorized action');
 
         }
 
         $query = parent::buildIndexFetchQuery($request, $requestedRelations);
+
         return $query;
     }
 
     protected function performStore(Request $request, Model $community, array $attributes): void
     {
-        if (!self::canGlobal('create communities')) {
+        if (! self::canGlobal('create communities')) {
             abort(403, 'Unauthorized action');
         }
         // Force updated attributes
         // Original controller: $data['creation_date'] = now();
         $attributes['created_by'] = $request->user()->id;
-        if (!isset($attributes['creation_date'])) {
+        if (! isset($attributes['creation_date'])) {
             $attributes['creation_date'] = now();
         }
 
@@ -96,7 +96,7 @@ class CommunityControllerOrion extends Controller
 
     protected function performUpdate(Request $request, Model $community, array $attributes): void
     {
-        if (!self::canGlobal('update communities')) {
+        if (! self::canGlobal('update communities')) {
             abort(403, 'Unauthorized update');
         }
         $community->fill($attributes);
@@ -105,7 +105,7 @@ class CommunityControllerOrion extends Controller
 
     protected function performDestroy(Model $community): void
     {
-        if (!self::canGlobal('delete communities')) {
+        if (! self::canGlobal('delete communities')) {
             abort(403, 'Unauthorized deletion');
         }
         $community->delete();
@@ -113,13 +113,14 @@ class CommunityControllerOrion extends Controller
 
     protected function buildShowFetchQuery(Request $request, array $requestedRelations): Builder
     {
-        if (!self::canGlobal('view communities')) {
+        if (! self::canGlobal('view communities')) {
             abort(403, 'Unauthorized view');
         }
+
         return parent::buildShowFetchQuery($request, $requestedRelations);
     }
 
-    static function canGlobal(string $permission)
+    public static function canGlobal(string $permission)
     {
         // Log::info("Checking global permission: {$permission}");
         $registrar = app(\Spatie\Permission\PermissionRegistrar::class);
@@ -129,9 +130,10 @@ class CommunityControllerOrion extends Controller
 
         $user = request()->user();
 
-        if (!$user) {
+        if (! $user) {
             // Log::warning("No user found in canGlobal");
             $registrar->setPermissionsTeamId($originalTeamId);
+
             return false;
         }
 
@@ -142,11 +144,12 @@ class CommunityControllerOrion extends Controller
         try {
             $resp = $user->hasPermissionTo($permission);
         } catch (\Throwable $e) {
-            Log::error("Error checking permission: " . $e->getMessage());
+            Log::error('Error checking permission: '.$e->getMessage());
             $resp = false;
         }
 
         $registrar->setPermissionsTeamId($originalTeamId);
+
         // Log::info("Permission {$permission} result: " . ($resp ? 'true' : 'false'));
         return $resp;
     }

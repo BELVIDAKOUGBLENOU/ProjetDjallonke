@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\TransactionEvent;
 use App\Models\Event;
 use App\Models\Person;
+use App\Models\TransactionEvent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

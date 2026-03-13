@@ -24,6 +24,7 @@ class PerformanceTrait extends Model
     {
         return $this->belongsTo(PerformanceRecord::class);
     }
+
     public static function getTableName()
     {
         return (new self)->getTable();

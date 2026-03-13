@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Country;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CountrieSeeder extends Seeder
@@ -14,7 +13,7 @@ class CountrieSeeder extends Seeder
     public function run(): void
     {
         $tables = [
-            "countries" => Country::class,
+            'countries' => Country::class,
 
         ];
         foreach ($tables as $key => $className) {
@@ -34,7 +33,7 @@ class CountrieSeeder extends Seeder
                 );
             }
         }
-        Country::whereNotIn('code_iso', ['BJ', 'BF',])->update(['is_active' => false]);
-        Country::whereIn('code_iso', ['BJ', 'BF',])->update(['is_active' => true]);
+        Country::whereNotIn('code_iso', ['BJ', 'BF'])->update(['is_active' => false]);
+        Country::whereIn('code_iso', ['BJ', 'BF'])->update(['is_active' => true]);
     }
 }

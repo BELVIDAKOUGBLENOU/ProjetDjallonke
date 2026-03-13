@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api\Frontend;
 
-use App\Models\Village;
-use App\Http\Common\Constant;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Village;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class VillageController extends Controller
@@ -17,6 +16,7 @@ class VillageController extends Controller
     {
         // Simple list for dropdowns
         $villages = Village::orderBy('name')->get();
+
         return JsonResource::collection($villages);
     }
 }

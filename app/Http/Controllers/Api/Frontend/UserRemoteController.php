@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCommunityContextFrontend;
-use App\Http\Requests\UserRemoteRequest; // We will create this or use UserRequest if appropriate
+// We will create this or use UserRequest if appropriate
 use App\Http\Resources\UserRemoteResource; // We need this
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,13 +12,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Spatie\Permission\Models\Role;
 
 class UserRemoteController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextFrontend::class);
         // Permissions
         $this->middleware('permission:list users')->only('index');
@@ -69,8 +68,6 @@ class UserRemoteController extends Controller
 
         $data = $validated;
 
-
-
         // Generate random password
         $plainPassword = str()->random(8); // Or 10, to be safe
         $data['password'] = Hash::make($plainPassword);
@@ -94,7 +91,7 @@ class UserRemoteController extends Controller
 
             // Send email
             try {
-                $user->notify(new \App\Notifications\PasswordChangeNotification());
+                $user->notify(new \App\Notifications\PasswordChangeNotification);
                 Mail::to($user->email)->send(new \App\Mail\NewMemberCredentials($user, $plainPassword));
                 // change password notification can be sent in the mail class or here, depending on how you want to structure it
 
@@ -110,11 +107,12 @@ class UserRemoteController extends Controller
 
             return response()->json([
                 'message' => 'Utilisateur créé avec succès. Un mot de passe temporaire a été envoyé par email.',
-                'user' => new UserRemoteResource($user)
+                'user' => new UserRemoteResource($user),
             ], 201);
 
         } catch (\Throwable $th) {
             DB::rollback();
+
             return response()->json(['message' => $th->getMessage()], 500);
         }
     }
@@ -126,6 +124,7 @@ class UserRemoteController extends Controller
     {
         $user = User::where('id', $id)->with(['rolesCustom'])->first();
         Log::info('User id: ' . $user->id . ' received id : ' . $id . ' has roles: ', ['roles' => $user->rolesCustom->pluck('name')]);
+
         return new UserRemoteResource($user);
     }
 
@@ -148,6 +147,7 @@ class UserRemoteController extends Controller
 
         try {
             $user->delete();
+
             return response()->json(['message' => 'Utilisateur supprimé avec succès.']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de la suppression.'], 500);

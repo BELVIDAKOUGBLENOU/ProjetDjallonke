@@ -24,10 +24,10 @@ class AnimalFactory extends Factory
             'uid' => fake()->unique()->uuid(),
             'created_by' => User::inRandomOrder()->first()->id ?? User::factory(),
             'premises_id' => Premise::inRandomOrder()->first()->id ?? Premise::factory(),
-            'species' => fake()->randomElement(['CAPRINE', 'OVINE',]),
+            'species' => fake()->randomElement(['CAPRINE', 'OVINE']),
             'sex' => fake()->randomElement(['M', 'F']),
             'birth_date' => fake()->date(),
-            'life_status' => fake()->randomElement( ['ALIVE', 'DEAD', 'SOLD']),
+            'life_status' => fake()->randomElement(['ALIVE', 'DEAD', 'SOLD']),
         ];
     }
 

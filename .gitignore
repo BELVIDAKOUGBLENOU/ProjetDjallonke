@@ -19,6 +19,8 @@
 /storage/pail
 /vendor
 /frontend
+/api-gateway
+/iam
 Homestead.json
 Homestead.yaml
 Thumbs.db

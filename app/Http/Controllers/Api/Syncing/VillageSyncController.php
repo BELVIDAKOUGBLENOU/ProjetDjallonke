@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\Village;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
 use App\Http\Requests\VillageRequest;
 use App\Http\Resources\VillageResource;
+use App\Models\Village;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\Middleware;
-use App\Http\Middleware\SetCommunityContextAPI;
-use Illuminate\Routing\Controllers\HasMiddleware;
 
 class VillageSyncController extends Controller
 {

@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Symfony\Component\Process\Process;
-use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
-
-use Illuminate\Support\Facades\Log;
-
-use Illuminate\Http\Request;
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
+
     public function autoUpdate()
     {
         $user = ('ezechieldef');
@@ -24,7 +21,7 @@ class Controller extends BaseController
         $process = new Process([
             'git',
             'pull',
-            'https://' . $token . '@github.com/BELVIDAKOUGBLENOU/ProjetDjallonke.git',
+            'https://'.$token.'@github.com/BELVIDAKOUGBLENOU/ProjetDjallonke.git',
         ]);
 
         $process->setWorkingDirectory(base_path()); // Répertoire racine de votre application Laravel.
@@ -35,7 +32,7 @@ class Controller extends BaseController
             dump($process->getOutput());
         } catch (ProcessFailedException $exception) {
             // En cas d'échec de la mise à jour.
-            dump("Erreur lors de la mise à jour", $exception->getMessage());
+            dump('Erreur lors de la mise à jour', $exception->getMessage());
 
         }
 
@@ -55,7 +52,7 @@ class Controller extends BaseController
             Artisan::call($cmd);
             $artisanResults[$cmd] = Artisan::output();
             echo "Command executed: $cmd\n <br>";
-            echo "Output: " . $artisanResults[$cmd] . "\n <br><br>";
+            echo 'Output: '.$artisanResults[$cmd]."\n <br><br>";
         }
 
         return response()->json(['message' => 'Mise à jour réussie']);

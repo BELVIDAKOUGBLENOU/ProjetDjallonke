@@ -18,7 +18,7 @@ class RoleResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             // 'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
-            'can_delete' => !in_array($this->name, ['Super-admin', 'Administrateur']),
+            'can_delete' => ! in_array($this->name, ['Super-admin', 'Administrateur']),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

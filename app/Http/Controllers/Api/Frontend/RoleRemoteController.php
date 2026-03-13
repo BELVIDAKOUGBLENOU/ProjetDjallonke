@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCommunityContextFrontend;
 use App\Http\Resources\RoleResource;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class RoleRemoteController extends Controller
 {
@@ -15,7 +15,7 @@ class RoleRemoteController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextFrontend::class);
         $this->middleware('permission:list roles')->only('index');
         $this->middleware('permission:create roles')->only('store');
@@ -55,7 +55,7 @@ class RoleRemoteController extends Controller
 
         $data = [
             'name' => $request->input('name'),
-            'guard_name' => 'web' // Force web guard for all new roles
+            'guard_name' => 'web', // Force web guard for all new roles
         ];
         $origin = getPermissionsTeamId();
         setPermissionsTeamId(null); // Ensure global context for role creation
@@ -80,8 +80,8 @@ class RoleRemoteController extends Controller
             $allPermissions = \Spatie\Permission\Models\Permission::all();
         }
 
-        $rolePermissions = DB::table("role_has_permissions")
-            ->where("role_has_permissions.role_id", $role->id)
+        $rolePermissions = DB::table('role_has_permissions')
+            ->where('role_has_permissions.role_id', $role->id)
             ->pluck('role_has_permissions.permission_id')
             ->map(function ($id) {
                 return (string) $id;
@@ -93,7 +93,7 @@ class RoleRemoteController extends Controller
             'permissions' => $allPermissions->map(function ($p) {
                 return ['id' => (string) $p->id, 'name' => $p->name];
             }),
-            'rolePermissions' => $rolePermissions
+            'rolePermissions' => $rolePermissions,
         ]);
     }
 
@@ -109,7 +109,7 @@ class RoleRemoteController extends Controller
 
         $request->validate([
             'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,name'
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
         // Explicitly use the 'web' guard when fetching permissions
@@ -121,7 +121,7 @@ class RoleRemoteController extends Controller
 
         return response()->json([
             'message' => 'Permissions updated successfully.',
-            'role' => new RoleResource($role)
+            'role' => new RoleResource($role),
         ]);
     }
 

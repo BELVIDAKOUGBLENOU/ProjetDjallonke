@@ -4,10 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Animal;
 use App\Models\Person;
-use App\Models\Premise;
 use App\Models\PersonRole;
+use App\Models\Premise;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class FakeData extends Seeder
 {

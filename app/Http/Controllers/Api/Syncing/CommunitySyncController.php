@@ -2,24 +2,19 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
+use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextAPI;
+use App\Http\Resources\CommunityResource;
 use App\Models\Community;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\CommunityRequest;
-use App\Http\Resources\CommunityResource;
 use Illuminate\Routing\Controllers\Middleware;
-use App\Http\Middleware\SetCommunityContextAPI;
-use Illuminate\Routing\Controllers\HasMiddleware;
 
 class CommunitySyncController extends Controller
 {
-
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextAPI::class);
         $this->middleware(function ($request, $next) {
 
@@ -29,10 +24,8 @@ class CommunitySyncController extends Controller
                 setPermissionsTeamId($communityId);
             }
 
-
             return $next($request);
         });
-
 
         // Middleware pour permissions CRUD
         $table = Community::getTableName();
@@ -42,7 +35,6 @@ class CommunitySyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
-
 
     /**
      * Display a listing of the resource.
@@ -102,5 +94,4 @@ class CommunitySyncController extends Controller
             'server_time' => now()->toDateTimeString(),
         ]);
     }
-
 }

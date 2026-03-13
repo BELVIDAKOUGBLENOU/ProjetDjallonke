@@ -2,27 +2,26 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\Event;
-use App\Models\Animal;
-use App\Models\HealthEvent;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\HealthEventResource;
 use App\Http\Middleware\SetCommunityContextAPI;
+use App\Http\Resources\HealthEventResource;
+use App\Models\Animal;
+use App\Models\Event;
+use App\Models\HealthEvent;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class HealthEventSyncController extends Controller
 {
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
-        $this->middleware(SetCommunityContextAPI::class);
 
+        $this->middleware(SetCommunityContextAPI::class);
 
         // Middleware pour permissions CRUD
         $table = HealthEvent::getTableName();
@@ -32,6 +31,7 @@ class HealthEventSyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -42,7 +42,7 @@ class HealthEventSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -82,7 +82,7 @@ class HealthEventSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->event->updated_at->toDateTimeString(),
-                'uid' => $last->event->uid
+                'uid' => $last->event->uid,
             ];
         }
 
@@ -90,7 +90,7 @@ class HealthEventSyncController extends Controller
             'data' => HealthEventResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
 
     }
@@ -101,7 +101,7 @@ class HealthEventSyncController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date'
+            'data.*.deleted_at' => 'nullable|date',
         ]);
         $user_id = Auth::user()->id;
         $applied = [];
@@ -124,6 +124,7 @@ class HealthEventSyncController extends Controller
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -132,6 +133,7 @@ class HealthEventSyncController extends Controller
                 if (!$animal) {
                     DB::rollBack();
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
+
                     continue;
                 }
 
@@ -140,9 +142,10 @@ class HealthEventSyncController extends Controller
                         if ($item['version'] <= $existingEvent->version) {
                             $conflicts[] = [
                                 'uid' => $item['uid'],
-                                'server_data' => new HealthEventResource($existingEvent->healthEvent)
+                                'server_data' => new HealthEventResource($existingEvent->healthEvent),
                             ];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -153,6 +156,7 @@ class HealthEventSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -174,6 +178,7 @@ class HealthEventSyncController extends Controller
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -182,6 +187,7 @@ class HealthEventSyncController extends Controller
                 if ($clientVersion <= $serverVersion) {
                     $conflicts[] = ['uid' => $item['uid'], 'server_data' => new HealthEventResource($existingEvent->healthEvent)];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -217,7 +223,7 @@ class HealthEventSyncController extends Controller
             'applied' => $applied,
             'conflicts' => $conflicts,
             'errors' => $errors,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 

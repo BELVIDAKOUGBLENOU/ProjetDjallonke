@@ -2,9 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\BirthEvent;
-use App\Models\Event;
 use App\Models\Animal;
+use App\Models\Event;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

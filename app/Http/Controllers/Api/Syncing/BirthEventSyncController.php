@@ -2,29 +2,28 @@
 
 namespace App\Http\Controllers\Api\Syncing;
 
-use App\Models\Event;
-use App\Models\Animal;
-use App\Models\Premise;
-use App\Models\BirthEvent;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\BirthEventResource;
 use App\Http\Middleware\SetCommunityContextAPI;
+use App\Http\Resources\BirthEventResource;
+use App\Models\Animal;
+use App\Models\BirthEvent;
+use App\Models\Event;
+use App\Models\Premise;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class BirthEventSyncController extends Controller
 {
     public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
-        $this->middleware(SetCommunityContextAPI::class);
 
+        $this->middleware(SetCommunityContextAPI::class);
 
         // Middleware pour permissions CRUD
         $table = BirthEvent::getTableName();
@@ -34,6 +33,7 @@ class BirthEventSyncController extends Controller
         $this->middleware("permission:update $table")->only(['edit', 'update']);
         $this->middleware("permission:delete $table")->only('destroy');
     }
+
     public function pull(Request $request): JsonResponse
     {
         $communityId = getPermissionsTeamId();
@@ -41,7 +41,7 @@ class BirthEventSyncController extends Controller
         $validated = $request->validate([
             'cursor.updated_at' => 'nullable|date_format:Y-m-d H:i:s',
             'cursor.uid' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:200'
+            'limit' => 'nullable|integer|min:1|max:200',
         ]);
 
         $limit = $validated['limit'] ?? 100;
@@ -81,7 +81,7 @@ class BirthEventSyncController extends Controller
             $last = $items->last();
             $nextCursor = [
                 'updated_at' => $last->event->updated_at->toDateTimeString(),
-                'uid' => $last->event->uid
+                'uid' => $last->event->uid,
             ];
         }
 
@@ -89,7 +89,7 @@ class BirthEventSyncController extends Controller
             'data' => BirthEventResource::collection($items),
             'cursor' => $nextCursor,
             'has_more' => $hasMore,
-            'server_time' => now()->toDateTimeString()
+            'server_time' => now()->toDateTimeString(),
         ]);
     }
 
@@ -99,14 +99,13 @@ class BirthEventSyncController extends Controller
             'data' => 'required|array',
             'data.*.uid' => 'required|string',
             'data.*.version' => 'required|integer',
-            'data.*.deleted_at' => 'nullable|date|before_or_equal:now'
+            'data.*.deleted_at' => 'nullable|date|before_or_equal:now',
         ]);
 
         $applied = [];
         $conflicts = [];
         $errors = [];
         $user_id = Auth::user()->id;
-
 
         foreach ($request->data as $item) {
             DB::beginTransaction();
@@ -123,25 +122,21 @@ class BirthEventSyncController extends Controller
                         'nullable',
                         'string',
                         Rule::exists('animals', 'uid')
-                            ->whereIn('premises_id', Premise::where('community_id', getPermissionsTeamId())->pluck('id'))
+                            ->whereIn('premises_id', Premise::where('community_id', getPermissionsTeamId())->pluck('id')),
                     ],
                     'father_uid' => [
                         'nullable',
                         'string',
                         Rule::exists('animals', 'uid')
-                            ->whereIn('premises_id', Premise::where('community_id', getPermissionsTeamId())->pluck('id'))
+                            ->whereIn('premises_id', Premise::where('community_id', getPermissionsTeamId())->pluck('id')),
                     ],
-
-
-
-
-
 
                 ]);
 
                 if ($validator->fails()) {
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'VALIDATION_ERROR', 'message' => $validator->errors()->first()];
                     DB::rollBack();
+
                     continue;
                 }
                 $mother_id = null;
@@ -164,6 +159,7 @@ class BirthEventSyncController extends Controller
                 if (!$animal) {
                     DB::rollBack();
                     $errors[] = ['uid' => $item['uid'] ?? null, 'code' => 'MISSING_RELATION', 'message' => 'Animal not found'];
+
                     continue;
                 }
 
@@ -172,9 +168,10 @@ class BirthEventSyncController extends Controller
                         if ($item['version'] <= $existingEvent->version) {
                             $conflicts[] = [
                                 'uid' => $item['uid'],
-                                'server_data' => new BirthEventResource($existingEvent->birthEvent)
+                                'server_data' => new BirthEventResource($existingEvent->birthEvent),
                             ];
                             DB::rollBack();
+
                             continue;
                         }
 
@@ -185,6 +182,7 @@ class BirthEventSyncController extends Controller
 
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -207,6 +205,7 @@ class BirthEventSyncController extends Controller
                     ]);
                     $applied[] = $item['uid'];
                     DB::commit();
+
                     continue;
                 }
 
@@ -215,6 +214,7 @@ class BirthEventSyncController extends Controller
                 if ($clientVersion <= $serverVersion) {
                     $conflicts[] = ['uid' => $item['uid'], 'server_data' => new BirthEventResource($existingEvent->birthEvent)];
                     DB::rollBack();
+
                     continue;
                 }
 

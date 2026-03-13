@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Api\Frontend;
 
+use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCommunityContextFrontend;
+use App\Http\Resources\DistrictResource;
 use App\Models\District;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Http\Resources\DistrictResource;
-use App\Http\Middleware\SetCommunityContextFrontend;
 
 class DistrictRemoteController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextFrontend::class);
 
         // Permissions
@@ -48,6 +48,7 @@ class DistrictRemoteController extends Controller
     public function indexByCountry(string $country)
     {
         $districts = District::where('country_id', $country)->orderBy('name')->get();
+
         return DistrictResource::collection($districts);
     }
 
@@ -66,6 +67,7 @@ class DistrictRemoteController extends Controller
     public function show(string $district)
     {
         $district = District::findOrFail($district);
+
         return new DistrictResource($district);
     }
 
@@ -89,7 +91,7 @@ class DistrictRemoteController extends Controller
 
         if ($district->subDistricts()->exists()) {
             return response()->json([
-                'message' => 'Impossible de supprimer ce district car il contient des sous-districts.'
+                'message' => 'Impossible de supprimer ce district car il contient des sous-districts.',
             ], 422);
         }
 

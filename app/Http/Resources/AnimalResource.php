@@ -16,6 +16,7 @@ class AnimalResource extends JsonResource
     {
         $data = parent::toArray($request);
         $data['premises_uid'] = $this->premise ? $this->premise->uid : $this->resource->premise->uid;
+
         return $data;
     }
 }

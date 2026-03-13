@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AnimalsExport;
+use App\Exports\AnimalsImportErrorsExport;
+use App\Exports\AnimalsTemplateExport;
+use App\Http\Requests\AnimalRequest;
+use App\Imports\AnimalsImport;
 use App\Models\Animal;
 use App\Models\Premise;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\AnimalRequest;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\AnimalsExport;
-use App\Exports\AnimalsTemplateExport;
-use App\Exports\AnimalsImportErrorsExport;
-use App\Imports\AnimalsImport;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AnimalController extends Controller
 {
-
     /* public function __construct()
     {
         // Middleware pour authentification
@@ -44,10 +43,10 @@ class AnimalController extends Controller
             whereHas('premise', function ($q) use ($communityId) {
                 $q->where('community_id', $communityId);
             })
-            ->search($q)
-            ->orderByDesc('created_at')
-            ->paginate()
-            ->appends(['q' => $q]);
+                ->search($q)
+                ->orderByDesc('created_at')
+                ->paginate()
+                ->appends(['q' => $q]);
 
         return view('animal.index', compact('animals', 'q'))
             ->with('i', ($request->input('page', 1) - 1) * $animals->perPage());
@@ -58,7 +57,7 @@ class AnimalController extends Controller
      */
     public function create(): View
     {
-        $animal = new Animal();
+        $animal = new Animal;
         $premises = Premise::where('community_id', session('selected_community'))->get();
 
         return view('animal.create', compact('animal', 'premises'));
@@ -125,6 +124,7 @@ class AnimalController extends Controller
         }
 
     }
+
     public function export()
     {
         return Excel::download(new AnimalsExport, 'animals.xlsx');
@@ -212,12 +212,13 @@ class AnimalController extends Controller
 
         session()->forget(['import_valid_data', 'import_invalid_data']);
 
-        return redirect()->route('animals.index')->with('success', count($validData) . ' animaux importés avec succès.');
+        return redirect()->route('animals.index')->with('success', count($validData).' animaux importés avec succès.');
     }
 
     public function downloadErrors()
     {
         $invalidData = session()->get('import_invalid_data', []);
+
         return Excel::download(new AnimalsImportErrorsExport($invalidData), 'import_errors.xlsx');
     }
 }

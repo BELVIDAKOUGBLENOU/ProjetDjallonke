@@ -15,7 +15,7 @@ class {{modelName}}Controller extends Controller
      /* public function __construct()
     {
         // Middleware pour authentification
-        $this->middleware('auth:sanctum');
+
 
         // Middleware pour permissions CRUD
         $table =  {{modelName}}::getTableName();

@@ -2,18 +2,17 @@
 
 use App\Http\Controllers\Api\Frontend\CommunityRemoteController;
 use App\Http\Controllers\Api\Frontend\GeographicRemoteController;
-use Illuminate\Support\Facades\Route;
-use Orion\Facades\Orion;
 use App\Http\Controllers\PostsController;
 use App\Http\Controllers\PostTagsController;
+use Illuminate\Support\Facades\Route;
+use Orion\Facades\Orion;
 
 // Route::group(['as' => 'api.'], function () {
 //     Orion::resource('posts', PostsController::class)->withSoftDeletes();
 //     Orion::morphToManyResource('posts', 'tags', PostTagsController::class);
 // });
 
-
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth.iam')->group(function () {
     Route::get('/communities/my-communities', [CommunityRemoteController::class, 'myCommunities']);
 
     // Member management routes
@@ -42,8 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::middleware('auth:sanctum')->prefix("geo")->group(function () {
-
+Route::middleware('auth.iam')->prefix('geo')->group(function () {
 
     Route::get('countries', [GeographicRemoteController::class, 'countries'])->name('countries.index');
     Route::get('countries/{country}/districts', [GeographicRemoteController::class, 'districts'])->name('countries.districts');

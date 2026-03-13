@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Api\Frontend;
 
+use App\Exports\PersonsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCommunityContextFrontend;
 use App\Http\Requests\PersonRequest;
 use App\Http\Resources\PersonResource;
 use App\Models\Person;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PersonsExport;
 
 class PersonRemoteController extends Controller
 {
@@ -32,7 +31,7 @@ class PersonRemoteController extends Controller
     public function export()
     {
         $communityId = getPermissionsTeamId();
-        if (!$communityId || $communityId == 0) {
+        if (! $communityId || $communityId == 0) {
             return response()->json(['message' => 'Community context required for export.'], 403);
         }
 
@@ -53,7 +52,7 @@ class PersonRemoteController extends Controller
             ->withCount([
                 'personRoles as owned_animals_count' => function ($query) {
                     $query->where('role_type', 'OWNER');
-                }
+                },
             ])
             ->withCount('personRoles as related_animals_count');
 
@@ -86,6 +85,7 @@ class PersonRemoteController extends Controller
         $data = $request->validated();
         $data['uid'] = Str::uuid();
         $person = Person::create($data);
+
         return new PersonResource($person);
     }
 

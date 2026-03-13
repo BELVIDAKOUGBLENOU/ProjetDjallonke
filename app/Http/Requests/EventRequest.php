@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Event;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\Event;
 
 class EventRequest extends FormRequest
 {

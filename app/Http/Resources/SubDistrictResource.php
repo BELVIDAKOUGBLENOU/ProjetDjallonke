@@ -24,17 +24,16 @@ class SubDistrictResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        $data['uid'] = '' . $this->id;
+        $data['uid'] = ''.$this->id;
         if ($this->imbriqued) {
             $villages = $this->whenLoaded('villages');
-            if (!$villages instanceof \Illuminate\Http\Resources\MissingValue) {
+            if (! $villages instanceof \Illuminate\Http\Resources\MissingValue) {
                 $villagesResource = VillageResource::collection($villages);
-                $villagesResource->each(fn($r) => $r->setImbriqued($this->imbriqued));
+                $villagesResource->each(fn ($r) => $r->setImbriqued($this->imbriqued));
                 $data['villages'] = $villagesResource;
             }
         }
         // unset($data['created_at'], $data['updated_at'], );
-
 
         return $data;
     }

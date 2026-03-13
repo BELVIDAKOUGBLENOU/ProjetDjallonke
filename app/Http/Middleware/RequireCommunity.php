@@ -16,12 +16,14 @@ class RequireCommunity
     public function handle(Request $request, Closure $next): Response
     {
         $communityId = session('selected_community');
-        if (!$communityId) {
+        if (! $communityId) {
             SetCommunityContext::selectFirst();
             $communityId = session('selected_community');
-            if (!$communityId)
+            if (! $communityId) {
                 return redirect()->route('my-communities')->with('error', 'Please select a community to continue.');
+            }
         }
+
         return $next($request);
     }
 }

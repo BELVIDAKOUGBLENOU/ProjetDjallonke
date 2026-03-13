@@ -3,10 +3,7 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class NewMemberCredentials extends Mailable
@@ -14,7 +11,9 @@ class NewMemberCredentials extends Mailable
     use Queueable, SerializesModels;
 
     public $user;
+
     public $password;
+
     public $community;
 
     /**
@@ -34,8 +33,8 @@ class NewMemberCredentials extends Mailable
             ->subject($subject)
             ->greeting('Bienvenue sur la plateforme !')
             ->line('Voici vos identifiants de connexion :')
-            ->line('Email : ' . $this->user->email)
-            ->line('Mot de passe : ' . $this->password)
+            ->line('Email : '.$this->user->email)
+            ->line('Mot de passe : '.$this->password)
             ->action('Se connecter', url('/login'));
 
         return $this

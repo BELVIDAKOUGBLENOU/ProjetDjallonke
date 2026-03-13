@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\WeightRecord;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

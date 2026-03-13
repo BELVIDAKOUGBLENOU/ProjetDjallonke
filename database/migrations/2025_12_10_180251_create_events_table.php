@@ -5,7 +5,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -15,7 +16,6 @@ return new class extends Migration {
             $table->id();
             $table->string('uid')->unique();
             $table->bigInteger('version')->default(1);
-
 
             $table->foreignId('created_by')->nullable()->constrained('users')->restrictOnDelete()->cascadeOnUpdate();
             $table->foreignId('confirmed_by')->nullable()->constrained('users')->restrictOnDelete()->cascadeOnUpdate();

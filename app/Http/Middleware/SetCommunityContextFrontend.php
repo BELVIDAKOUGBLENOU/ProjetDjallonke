@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetCommunityContextFrontend
@@ -16,10 +15,10 @@ class SetCommunityContextFrontend
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check()) {
+        $user = $request->user();
+        if (! $user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
-        $user = auth()->user();
         $communityId = $request->header('X-Community-ID');
 
         if ($communityId && $user->communities()->where('communities.id', $communityId)->exists()) {
@@ -39,6 +38,7 @@ class SetCommunityContextFrontend
                 return response()->json(['message' => 'X-Community-ID header is missing'], 400);
             }
         }
+
         return $next($request);
     }
 }

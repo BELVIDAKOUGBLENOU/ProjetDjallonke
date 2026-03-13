@@ -16,10 +16,10 @@ class SetCommunityContextAPI
     public function handle(Request $request, Closure $next): Response
     {
         $communityId = $request->header('X-Community-ID');
-        if (!auth()->check()) {
+        $user = $request->user();
+        if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
-        $user = auth()->user();
 
         if ($communityId && $user->mobileAppCommunities()->where('communities.id', $communityId)->exists()) {
             setPermissionsTeamId($communityId);
@@ -31,6 +31,7 @@ class SetCommunityContextAPI
                 return response()->json(['message' => 'X-Community-ID header is missing'], 400);
             }
         }
+
         return $next($request);
     }
 }

@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
     public $bypassRoleForNonSuperAdmin = ['Super-admin'];
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -20,7 +20,7 @@ class RoleController extends Controller
         $this->middleware(function ($request, $next) {
             $user = auth()->user();
 
-            if (!($user->hasRole('Super-admin'))) {
+            if (! ($user->hasRole('Super-admin'))) {
                 abort(403, 'Unauthorized action.');
             }
 
@@ -28,9 +28,9 @@ class RoleController extends Controller
 
             if ($roleId) {
                 $role = ($roleId instanceof Role) ? $roleId : Role::findOrFail($roleId);
-                if (is_null($role->entreprise_id) && !$user->hasRole('Super-admin')) {
+                if (is_null($role->entreprise_id) && ! $user->hasRole('Super-admin')) {
                     abort(403, 'Only Super-admin can manage global roles.');
-                } elseif (!is_null($role->entreprise_id) && $user->entreprise_id != $role->entreprise_id && !$user->hasRole('Super-admin')) {
+                } elseif (! is_null($role->entreprise_id) && $user->entreprise_id != $role->entreprise_id && ! $user->hasRole('Super-admin')) {
                     abort(403, 'Ceci ne vous concerne pas.');
                 }
 
@@ -39,12 +39,13 @@ class RoleController extends Controller
             return $next($request);
         });
     }
+
     public function index(Request $request): View
     {
         $user = auth()->user();
         $query = Role::orderBy('id', 'DESC');
 
-        if (!$user->hasRole('Super-admin')) {
+        if (! $user->hasRole('Super-admin')) {
             $query->where(function ($q) use ($user) {
                 $q->whereNull('entreprise_id')
                     ->orWhere('entreprise_id', $user->entreprise_id);
@@ -52,6 +53,7 @@ class RoleController extends Controller
         }
 
         $roles = $query->paginate(10);
+
         return view('role.index', compact('roles'))
             ->with('i', ($request->input('page', 1) - 1) * 10);
     }
@@ -74,7 +76,7 @@ class RoleController extends Controller
 
         $data = ['name' => $request->input('name')];
 
-        if (!$user->hasRole('Super-admin')) {
+        if (! $user->hasRole('Super-admin')) {
             $data['entreprise_id'] = $user->entreprise_id;
         } else {
             $data['entreprise_id'] = null;
@@ -89,9 +91,9 @@ class RoleController extends Controller
     public function show($id): View
     {
         $role = Role::find($id);
-        //permissions du role Administrateur
+        // permissions du role Administrateur
         $permissions = Role::findByName('Administrateur')->permissions;
-        $rolePermissions = DB::table("role_has_permissions")->where("role_has_permissions.role_id", $id)
+        $rolePermissions = DB::table('role_has_permissions')->where('role_has_permissions.role_id', $id)
             ->pluck('role_has_permissions.permission_id', 'role_has_permissions.permission_id')
             ->all();
 
@@ -101,6 +103,7 @@ class RoleController extends Controller
     public function edit($id): View
     {
         $role = Role::find($id);
+
         return view('role.edit', compact('role'));
     }
 
@@ -111,7 +114,7 @@ class RoleController extends Controller
         $this->validate($request, [
             'name' => [
                 'required',
-                "unique:roles,name," . $role->id,
+                'unique:roles,name,'.$role->id,
             ],
         ]);
 
@@ -129,7 +132,8 @@ class RoleController extends Controller
             return redirect()->route('roles.index')
                 ->with('error', 'Ce rôle ne peut pas être supprimé.');
         }
-        DB::table("roles")->where('id', $id)->delete();
+        DB::table('roles')->where('id', $id)->delete();
+
         return redirect()->route('roles.index')
             ->with('success', 'Rôle supprimé avec succès');
     }

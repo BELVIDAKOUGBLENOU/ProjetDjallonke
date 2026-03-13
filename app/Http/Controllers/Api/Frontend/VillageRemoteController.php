@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Api\Frontend;
 
-use App\Models\Village;
-use Illuminate\Http\Request;
-use App\Http\Resources\VillageResource;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCommunityContextFrontend;
+use App\Http\Resources\VillageResource;
+use App\Models\Village;
+use Illuminate\Http\Request;
 
 class VillageRemoteController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+
         $this->middleware(SetCommunityContextFrontend::class);
 
         // Permissions
@@ -48,6 +48,7 @@ class VillageRemoteController extends Controller
     public function indexBySubDistrict(string $subDistrict)
     {
         $villages = Village::where('sub_district_id', $subDistrict)->orderBy('name')->get();
+
         return VillageResource::collection($villages);
     }
 
@@ -67,6 +68,7 @@ class VillageRemoteController extends Controller
     public function show(string $village)
     {
         $village = Village::findOrFail($village);
+
         return new VillageResource($village);
     }
 

@@ -2,10 +2,8 @@
 
 namespace App\Http\Resources;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Log;
 
 class UserResource extends JsonResource
 {
@@ -14,12 +12,12 @@ class UserResource extends JsonResource
     /**
      * Set the toRemote flag.
      *
-     * @param  bool  $toRemote
      * @return $this
      */
     public function setToRemote(bool $toRemote): self
     {
         $this->toRemote = $toRemote;
+
         return $this;
     }
 
@@ -32,7 +30,7 @@ class UserResource extends JsonResource
     {
         $data = parent::toArray($request);
         unset($data['password'], $data['remember_token'], $data['created_at'], $data['updated_at']);
-        if (!$this->toRemote) {
+        if (! $this->toRemote) {
 
             $communities = $this->mobileAppCommunities()->get();
         } else {

@@ -18,7 +18,7 @@ class SubDistrict extends Model
         if ($term === '') {
             return $query;
         }
-        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
         // Adjust searchable columns after generation if necessary
         $columns = array_filter([
             // Example: 'name', 'title', 'slug'
@@ -26,6 +26,7 @@ class SubDistrict extends Model
         if (empty($columns)) {
             return $query; // No columns defined; user will customize.
         }
+
         return $query->where(function ($q) use ($columns, $like) {
             foreach ($columns as $idx => $col) {
                 $method = $idx === 0 ? 'where' : 'orWhere';
@@ -33,6 +34,7 @@ class SubDistrict extends Model
             }
         });
     }
+
     public function district()
     {
         return $this->belongsTo(District::class);

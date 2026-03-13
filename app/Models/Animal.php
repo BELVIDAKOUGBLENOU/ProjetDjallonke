@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Animal extends Model
 {
     /** @use HasFactory<\Database\Factories\AnimalFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     const SPECIES = ['OVINE', 'CAPRINE'];
+
     const SEXES = ['M', 'F'];
+
     const LIFE_STATUSES = ['ALIVE', 'DEAD', 'SOLD'];
 
     protected $fillable = [
@@ -25,15 +28,16 @@ class Animal extends Model
         'birth_date',
         'life_status',
         'uid',
-        'version'
+        'version',
     ];
+
     public function scopeSearch($query, ?string $term)
     {
         $term = trim((string) $term);
         if ($term === '') {
             return $query;
         }
-        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
 
         return $query->where(function ($q) use ($like) {
             $q->where('uid', 'like', $like)
@@ -47,6 +51,7 @@ class Animal extends Model
                 });
         });
     }
+
     public static function getTableName()
     {
         return (new self)->getTable();

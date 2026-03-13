@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package auth;
+
+// Options pour l'intégration Laravel
+option php_namespace = "App\\Grpc\\Auth";
+option php_metadata_namespace = "App\\Grpc\\Auth\\Metadata";
+
+service AuthService {
+  // Vérifie un access_token et retourne l'identité de l'utilisateur
+  rpc VerifyToken (TokenRequest) returns (UserResponse);
+}
+
+message TokenRequest {
+  string access_token = 1;
+}
+
+message UserResponse {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  string uid = 4;
+  string email_verified_at = 5; // On utilise string pour les formats ISO8601
+  string created_at = 6;
+  string updated_at = 7;
+  string fcm_token = 8;
+}

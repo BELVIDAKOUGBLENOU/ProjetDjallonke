@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Frontend;
 
+use App\Exports\EventsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCommunityContextFrontend;
 use App\Http\Requests\EventRequest;
@@ -10,7 +11,6 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\EventsExport;
 
 class EventRemoteController extends Controller
 {
@@ -18,9 +18,9 @@ class EventRemoteController extends Controller
     {
         $table = Event::getTableName();
         $this->middleware(SetCommunityContextFrontend::class);
-        $this->middleware("permission:list events")->only('index');
-        $this->middleware("permission:update events")->only(['update']);
-        $this->middleware("permission:delete events")->only('destroy');
+        $this->middleware('permission:list events')->only('index');
+        $this->middleware('permission:update events')->only(['update']);
+        $this->middleware('permission:delete events')->only('destroy');
     }
 
     /**
@@ -99,7 +99,7 @@ class EventRemoteController extends Controller
             'birthEvent',
             'milkRecord',
             'deathEvent',
-            'weightRecord'
+            'weightRecord',
         ])
             ->latest('event_date')
             ->paginate($limit);
@@ -159,7 +159,6 @@ class EventRemoteController extends Controller
         return Excel::download($export, 'events_export.xlsx');
     }
 
-
     /**
      * Display the specified resource.
      */
@@ -175,7 +174,7 @@ class EventRemoteController extends Controller
             'birthEvent',
             'milkRecord',
             'deathEvent',
-            'weightRecord'
+            'weightRecord',
         ])->findOrFail($id);
 
         return new EventResource($event);
@@ -191,7 +190,7 @@ class EventRemoteController extends Controller
         $data = $request->validated();
 
         // If confirming, set confirmed_by
-        if (isset($data['is_confirmed']) && $data['is_confirmed'] && !$event->is_confirmed) {
+        if (isset($data['is_confirmed']) && $data['is_confirmed'] && ! $event->is_confirmed) {
             $data['confirmed_by'] = Auth::id();
         }
 

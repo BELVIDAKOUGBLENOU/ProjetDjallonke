@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\MovementEvent;
 use App\Models\Event;
 use App\Models\Premise;
 use Illuminate\Database\Eloquent\Factories\Factory;

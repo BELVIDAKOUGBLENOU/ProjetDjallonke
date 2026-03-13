@@ -2,13 +2,14 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use App\Exports\Sheets\AnimalsFilteredSheet;
 use App\Exports\Sheets\PersonsReferenceSheet;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class AnimalsWithDetailsExport implements WithMultipleSheets
 {
     protected $filters;
+
     protected $communityId;
 
     public function __construct(array $filters, $communityId)

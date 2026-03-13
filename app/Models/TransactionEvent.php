@@ -21,9 +21,11 @@ class TransactionEvent extends Model
         'buyer_id',
         'seller_id',
     ];
+
     protected $casts = [
-        'price' => 'float'
+        'price' => 'float',
     ];
+
     public function event()
     {
         return $this->belongsTo(Event::class);
@@ -38,6 +40,7 @@ class TransactionEvent extends Model
     {
         return $this->belongsTo(Person::class, 'seller_id');
     }
+
     public static function getTableName()
     {
         return (new self)->getTable();

@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class ProfileSyncController extends Controller
 {
@@ -23,7 +22,7 @@ class ProfileSyncController extends Controller
             ->where('user_id', $user->getAuthIdentifier())
             ->orderBy('last_activity', 'desc')
             ->get()
-            ->map(function ($session) use ($request, $currentSessionId) {
+            ->map(function ($session) use ($currentSessionId) {
                 return (object) [
                     'agent' => $this->createAgent($session),
                     'ip_address' => $session->ip_address,
@@ -34,7 +33,7 @@ class ProfileSyncController extends Controller
 
         return response()->json([
             'user' => $user,
-            'sessions' => $sessions
+            'sessions' => $sessions,
         ]);
     }
 
@@ -53,32 +52,42 @@ class ProfileSyncController extends Controller
 
     protected function getPlatform($userAgent)
     {
-        if (str_contains($userAgent, 'Windows'))
+        if (str_contains($userAgent, 'Windows')) {
             return 'Windows';
-        if (str_contains($userAgent, 'Mac'))
+        }
+        if (str_contains($userAgent, 'Mac')) {
             return 'macOS';
-        if (str_contains($userAgent, 'Linux'))
+        }
+        if (str_contains($userAgent, 'Linux')) {
             return 'Linux';
-        if (str_contains($userAgent, 'Android'))
+        }
+        if (str_contains($userAgent, 'Android')) {
             return 'Android';
-        if (str_contains($userAgent, 'iPhone'))
+        }
+        if (str_contains($userAgent, 'iPhone')) {
             return 'iOS';
+        }
+
         return 'Unknown';
     }
 
     protected function getBrowser($userAgent)
     {
-        if (str_contains($userAgent, 'Chrome'))
+        if (str_contains($userAgent, 'Chrome')) {
             return 'Chrome';
-        if (str_contains($userAgent, 'Safari') && !str_contains($userAgent, 'Chrome'))
+        }
+        if (str_contains($userAgent, 'Safari') && ! str_contains($userAgent, 'Chrome')) {
             return 'Safari';
-        if (str_contains($userAgent, 'Firefox'))
+        }
+        if (str_contains($userAgent, 'Firefox')) {
             return 'Firefox';
-        if (str_contains($userAgent, 'Edge'))
+        }
+        if (str_contains($userAgent, 'Edge')) {
             return 'Edge';
+        }
+
         return 'Browser';
     }
-
 
     /**
      * Update user profile information.

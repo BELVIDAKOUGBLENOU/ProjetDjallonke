@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Mail\NewMemberCredentials;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use App\Mail\NewMemberCredentials;
 
 class Community extends Model
 {
@@ -21,24 +21,27 @@ class Community extends Model
     {
         return (new self)->getTable();
     }
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'community_memberships');
     }
+
     public function scopeSearch($query, ?string $term)
     {
         $term = trim((string) $term);
         if ($term === '') {
             return $query;
         }
-        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
         // Adjust searchable columns after generation if necessary
         $columns = array_filter([
-            'name'
+            'name',
         ]);
         if (empty($columns)) {
             return $query; // No columns defined; user will customize.
         }
+
         return $query->where(function ($q) use ($columns, $like) {
             foreach ($columns as $idx => $col) {
                 $method = $idx === 0 ? 'where' : 'orWhere';
@@ -99,7 +102,7 @@ class Community extends Model
                     $person = $query->first();
                 }
 
-                if (!$person) {
+                if (! $person) {
                     $person = Person::create([
                         'name' => $name,
                         'phone' => $phone,
@@ -113,7 +116,7 @@ class Community extends Model
             $password = null;
             $isNewUser = false;
 
-            if (!$user) {
+            if (! $user) {
                 $password = Str::random(8);
                 $user = User::create([
                     'name' => $name,
@@ -124,7 +127,7 @@ class Community extends Model
                 $isNewUser = true;
             } else {
                 // If user exists and we found/created a person (Farmer), link them if not linked
-                if ($person && !$user->person_id) {
+                if ($person && ! $user->person_id) {
                     $user->update(['person_id' => $person->id]);
                 }
             }
@@ -138,7 +141,7 @@ class Community extends Model
             setPermissionsTeamId($temp); // Restore original team context
             if ($isSuperAdmin) {
 
-                throw new \Exception("Super-admin cannot be added as a member of a community.");
+                throw new \Exception('Super-admin cannot be added as a member of a community.');
             }
 
             // Create Membership
@@ -146,7 +149,7 @@ class Community extends Model
                 ->where('user_id', $user->id)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 CommunityMembership::create([
                     'community_id' => $communityId,
                     'user_id' => $user->id,
@@ -156,7 +159,7 @@ class Community extends Model
             }
             // Assign Role with Team Context
             setPermissionsTeamId($communityId);
-            //vérifier s'il a déjà un role dans cette communauté
+            // vérifier s'il a déjà un role dans cette communauté
             // dump("role actuelle", $user->getRoleNames());
             if (count($user->getRoleNames()) != 0) {
                 foreach ($user->getRoleNames() as $existingRole) {
@@ -168,14 +171,11 @@ class Community extends Model
             // dd($role);
             $user->assignRole($role);
 
-
-
             // Send Email if new user
             if ($isNewUser && $password) {
                 Mail::to($user->email)->send(new NewMemberCredentials($user, $password, Community::find($communityId)));
-                $user->notifyNow(new \App\Notifications\PasswordChangeNotification());
+                $user->notifyNow(new \App\Notifications\PasswordChangeNotification);
             }
-
 
             return $user;
         });
@@ -189,6 +189,7 @@ class Community extends Model
         setPermissionsTeamId($communityId);
         $memberShip->user->removeRole($memberShip->role);
         setPermissionsTeamId(null);
+
         return $memberShip->delete();
     }
 }

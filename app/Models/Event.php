@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Event extends Model
 {
     /** @use HasFactory<\Database\Factories\EventFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     const SOURCES = ['COMMUNITY_ADMIN', 'FARMER', 'TECHNICIAN'];
@@ -29,11 +30,12 @@ class Event extends Model
         'comment',
         'is_confirmed',
         'uid',
-        'version'
+        'version',
     ];
-    //casts
+
+    // casts
     protected $casts = [
-        'is_confirmed' => 'boolean'
+        'is_confirmed' => 'boolean',
     ];
 
     public function creator()

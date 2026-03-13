@@ -10,6 +10,7 @@ class PersonRole extends Model
 {
     /** @use HasFactory<\Database\Factories\PersonRoleFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     const ROLE_TYPES = ['OWNER', 'DEALER', 'TRANSPORTER'];
@@ -19,7 +20,7 @@ class PersonRole extends Model
         'animal_id',
         'role_type',
         'uid',
-        'version'
+        'version',
     ];
 
     public function person()

@@ -13,6 +13,7 @@ class WeightRecordResource extends JsonResource
         $eventField = $this->resource->event->toArray();
         $data = $eventField;
         $data = array_merge($data, parent::toArray($request));
+
         return $data;
     }
 }

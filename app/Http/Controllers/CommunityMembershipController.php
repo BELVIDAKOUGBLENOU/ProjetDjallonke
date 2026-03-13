@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\SetCommunityContext;
 use App\Models\Community;
+use App\Models\CommunityMembership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\CommunityMembership;
-use App\Http\Middleware\SetCommunityContext;
 
 class CommunityMembershipController extends Controller
 {
@@ -25,24 +25,26 @@ class CommunityMembershipController extends Controller
         $this->middleware("permission:update member role $table")->only('update');
         $this->middleware("permission:remove member $table")->only('destroy');
     }
+
     public function store(Request $request, Community $community)
     {
         $isSuperAdmin = auth()->user()?->hasRole('Super-admin') ?? false;
         $request->validate([
-            'role' => 'required|in:FARMER,VET,TECHNICIAN,RESEARCHER' . ($isSuperAdmin ? ',COMMUNITY_ADMIN' : ''),
+            'role' => 'required|in:FARMER,VET,TECHNICIAN,RESEARCHER'.($isSuperAdmin ? ',COMMUNITY_ADMIN' : ''),
             'name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'nullable|required_if:role,FARMER|string|max:20',
             'nationalId' => 'nullable|required_if:role,FARMER|string|max:50',
         ], [
-            'role.in' => 'The selected role is invalid.' . ($isSuperAdmin ? '' : ' Only FARMER, VET, TECHNICIAN, and RESEARCHER roles are allowed.'),
+            'role.in' => 'The selected role is invalid.'.($isSuperAdmin ? '' : ' Only FARMER, VET, TECHNICIAN, and RESEARCHER roles are allowed.'),
         ]);
 
         try {
             Community::addMember($community->id, $request->all());
+
             return back()->with('success', 'Member added successfully.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Error adding member: ' . $e->getMessage());
+            return back()->with('error', 'Error adding member: '.$e->getMessage());
         }
     }
 
@@ -68,6 +70,7 @@ class CommunityMembershipController extends Controller
     public function destroy(Community $community, $userId)
     {
         Community::removeMember($community->id, $userId);
+
         return back()->with('success', 'Member removed successfully.');
     }
 }
