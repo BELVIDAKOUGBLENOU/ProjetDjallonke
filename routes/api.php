@@ -24,9 +24,9 @@ use App\Http\Controllers\Api\Syncing\WeightRecordSyncController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+// Route::post('/login', [AuthController::class, 'login']);
+// Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+// Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/constants', [ConstantDataController::class, 'getConstants']);
 Route::middleware('auth.iam')->group(function () {
     // Route::middleware('auth:sanctum')->group(function () {
@@ -101,4 +101,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-require __DIR__.'/frontend.php';
+require __DIR__ . '/frontend.php';

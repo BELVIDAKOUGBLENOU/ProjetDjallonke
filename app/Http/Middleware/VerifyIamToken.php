@@ -31,7 +31,12 @@ class VerifyIamToken
         $user = IamM2M::verifyJWT($token);
 
         if (!$user) {
-            return response()->json(['error' => 'Invalid token'], 401);
+            $iamhost = '';
+            if (env("APP_ENV") === "local") {
+                $iamhost = IamM2M::getIamHost();
+
+            }
+            return response()->json(['error' => 'Invalid token' . $iamhost], 401);
         }
         $user = User::firstOrCreate(
             ['email' => $user['email']],
