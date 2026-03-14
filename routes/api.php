@@ -53,7 +53,7 @@ Route::middleware('auth.iam')->group(function () {
     // Route::get('/communities/my-communities', [App\Http\Controllers\Api\CommunityController::class, 'myCommunities']); // Custom endpoint if needed distinct from index
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth.iam')->group(function () {
     // PULL
     Route::get('/pull/community', [CommunitySyncController::class, 'pull']);
     Route::get('/pull/countries', [CountrySyncController::class, 'pull']);
