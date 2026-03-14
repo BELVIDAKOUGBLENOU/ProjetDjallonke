@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Api\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCommunityContextFrontend;
-// We will create this or use UserRequest if appropriate
-use App\Http\Resources\UserRemoteResource; // We need this
+use App\Http\Resources\UserRemoteResource;
 use App\Models\User;
+use App\Services\IamM2M;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class UserRemoteController extends Controller
 {
@@ -58,63 +58,50 @@ class UserRemoteController extends Controller
      */
     public function store(Request $request)
     {
-        // Validation logic - can extract to FormRequest
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users'],
+            'name'  => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
-            // Start with password handling similar to backend controller
         ]);
 
-        $data = $validated;
+        // --- Étape 1 : Synchronisation avec le service IAM ---
+        $uid = User::where('email', $validated['email'])->value('uid') ?? (string) Str::uuid();
 
-        // Generate random password
-        $plainPassword = str()->random(8); // Or 10, to be safe
-        $data['password'] = Hash::make($plainPassword);
+        $iamResponse = IamM2M::addNewUser([
+            'uid'   => $uid,
+            'name'  => $validated['name'],
+            'email' => $validated['email'],
+        ]);
 
-        DB::beginTransaction();
-        try {
-            $user = User::create($data);
+        if (! $iamResponse) {
+            return response()->json(['message' => 'Impossible de créer l\'utilisateur dans le service IAM.'], 500);
+        }
 
-            // Assign Roles
-            // Logic based on user request: "cet utilisateur aura les acces de Super-admin que ce profil createur possede"
-            // If creator is Super-admin, assign Super-admin.
-            // If creator is NOT Super-admin, what rol? 'Administrateur'?
-            // The prompt says "les acces de Super-admin que ce profil createur possede" -> implying the creator HAS super-admin access.
+        // --- Étape 2 : Upsert de l'utilisateur local par uid ---
+        $user = User::updateOrCreate(
+            ['uid' => $iamResponse['uid']],
+            [
+                'name'     => $iamResponse['name'],
+                'email'    => $iamResponse['email'],
+                'phone'    => $validated['phone'] ?? null,
+                'password' => Hash::make(Str::random(32)),
+            ]
+        );
 
+        // --- Étape 3 : Assignation des rôles du créateur ---
+        DB::transaction(function () use ($user) {
             $creatorRoleNames = auth()->user()->getRoleNames();
             foreach ($creatorRoleNames as $roleName) {
                 if ($roleName) {
                     $user->assignRole($roleName);
                 }
             }
+        });
 
-            // Send email
-            try {
-                $user->notify(new \App\Notifications\PasswordChangeNotification);
-                Mail::to($user->email)->send(new \App\Mail\NewMemberCredentials($user, $plainPassword));
-                // change password notification can be sent in the mail class or here, depending on how you want to structure it
-
-            } catch (\Exception $e) {
-                // Log email failure but don't fail user creation necessarily?
-                // Or maybe fail it? Controller fails it usually.
-            }
-
-            // Notify
-            // $user->notifyNow(new \App\Notifications\PasswordChangeNotification());
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Utilisateur créé avec succès. Un mot de passe temporaire a été envoyé par email.',
-                'user' => new UserRemoteResource($user),
-            ], 201);
-
-        } catch (\Throwable $th) {
-            DB::rollback();
-
-            return response()->json(['message' => $th->getMessage()], 500);
-        }
+        return response()->json([
+            'message' => 'Utilisateur créé avec succès.',
+            'user'    => new UserRemoteResource($user),
+        ], 201);
     }
 
     /**

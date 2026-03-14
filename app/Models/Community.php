@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Mail\NewMemberCredentials;
+use App\Services\IamM2M;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class Community extends Model
 {
@@ -33,7 +33,7 @@ class Community extends Model
         if ($term === '') {
             return $query;
         }
-        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
         // Adjust searchable columns after generation if necessary
         $columns = array_filter([
             'name',
@@ -79,17 +79,38 @@ class Community extends Model
 
     public static function addMember(int $communityId, array $data)
     {
-        return DB::transaction(function () use ($communityId, $data) {
-            $role = $data['role'];
-            $name = $data['name'];
-            $email = $data['email'];
+        $role = $data['role'];
+        $name = $data['name'];
+        $email = $data['email'];
+        $phone = $data['phone'] ?? null;
+        $nationalId = $data['nationalId'] ?? null;
 
-            $person = null;
+        // --- Étape 1 : Synchronisation avec le service IAM ---
+        // Récupère l'uid existant ou en génère un nouveau pour cet email
+        $uid = User::where('email', $email)->value('uid') ?? (string) Str::uuid();
+
+        $iamResponse = IamM2M::addNewUser([
+            'uid' => $uid,
+            'name' => $name,
+            'email' => $email,
+        ]);
+
+        if (!$iamResponse) {
+            throw new \Exception('Failed to register user in IAM service.');
+        }
+        Log::info('response ', ["iam-resp" => $iamResponse, 'uid' => $iamResponse]);
+        // --- Étape 2 : Upsert de l'utilisateur local par uid ---
+        $user = User::updateOrCreate(
+            ['uid' => $iamResponse['uid']],
+            ['name' => $iamResponse['name'], 'email' => $iamResponse['email'], 'password' => Hash::make(Str::random(32))]
+        );
+
+        // --- Étape 3 : Transaction locale (person, membership, rôles) ---
+        return DB::transaction(function () use ($communityId, $role, $name, $phone, $nationalId, $user) {
 
             // Handle Farmer Logic
             if ($role === 'FARMER') {
-                $phone = $data['phone'] ?? null;
-                $nationalId = $data['nationalId'] ?? null;
+                $person = null;
 
                 if ($phone || $nationalId) {
                     $query = Person::query();
@@ -102,45 +123,26 @@ class Community extends Model
                     $person = $query->first();
                 }
 
-                if (! $person) {
+                if (!$person) {
                     $person = Person::create([
                         'name' => $name,
                         'phone' => $phone,
                         'nationalId' => $nationalId,
                     ]);
                 }
-            }
 
-            // Handle User Logic
-            $user = User::where('email', $email)->first();
-            $password = null;
-            $isNewUser = false;
-
-            if (! $user) {
-                $password = Str::random(8);
-                $user = User::create([
-                    'name' => $name,
-                    'email' => $email,
-                    'password' => Hash::make($password),
-                    'person_id' => $person ? $person->id : null,
-                ]);
-                $isNewUser = true;
-            } else {
-                // If user exists and we found/created a person (Farmer), link them if not linked
-                if ($person && ! $user->person_id) {
+                if ($person && !$user->person_id) {
                     $user->update(['person_id' => $person->id]);
                 }
             }
-            $isSuperAdmin = false;
-            $temp = getPermissionsTeamId();
-            setPermissionsTeamId(0); // Temporarily set to global to check role
-            // S'il possedes des roles globaux, on l'empeche d'integrer des communautés, même s'il n'est pas super admin
-            if (count($user->getRoleNames()) > 0) {
-                $isSuperAdmin = true;
-            }
-            setPermissionsTeamId($temp); // Restore original team context
-            if ($isSuperAdmin) {
 
+            // Vérifier que ce n'est pas un super-admin global
+            $temp = getPermissionsTeamId();
+            setPermissionsTeamId(0);
+            $isSuperAdmin = count($user->getRoleNames()) > 0;
+            setPermissionsTeamId($temp);
+
+            if ($isSuperAdmin) {
                 throw new \Exception('Super-admin cannot be added as a member of a community.');
             }
 
@@ -149,7 +151,7 @@ class Community extends Model
                 ->where('user_id', $user->id)
                 ->exists();
 
-            if (! $exists) {
+            if (!$exists) {
                 CommunityMembership::create([
                     'community_id' => $communityId,
                     'user_id' => $user->id,
@@ -157,25 +159,13 @@ class Community extends Model
                     'added_at' => now(),
                 ]);
             }
+
             // Assign Role with Team Context
             setPermissionsTeamId($communityId);
-            // vérifier s'il a déjà un role dans cette communauté
-            // dump("role actuelle", $user->getRoleNames());
-            if (count($user->getRoleNames()) != 0) {
-                foreach ($user->getRoleNames() as $existingRole) {
-                    // dump("suppression de  : " . $existingRole);
-                    $user->removeRole($existingRole);
-                }
+            foreach ($user->getRoleNames() as $existingRole) {
+                $user->removeRole($existingRole);
             }
-            // dump("role actuelle", $user->getRoleNames());
-            // dd($role);
             $user->assignRole($role);
-
-            // Send Email if new user
-            if ($isNewUser && $password) {
-                Mail::to($user->email)->send(new NewMemberCredentials($user, $password, Community::find($communityId)));
-                $user->notifyNow(new \App\Notifications\PasswordChangeNotification);
-            }
 
             return $user;
         });

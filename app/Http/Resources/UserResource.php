@@ -30,9 +30,10 @@ class UserResource extends JsonResource
     {
         $data = parent::toArray($request);
         unset($data['password'], $data['remember_token'], $data['created_at'], $data['updated_at']);
-        if (! $this->toRemote) {
+        if (!$this->toRemote) {
 
             $communities = $this->mobileAppCommunities()->get();
+
         } else {
             $communities = $this->communities()->get();
         }

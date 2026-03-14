@@ -19,7 +19,7 @@ class UserSyncController extends Controller
             $fromRemote = false;
         }
         // dd($request->user());
-        Log::info('User info requested', ['user_id' => $request->user()->id, 'from_remote' => $fromRemote]);
+        // Log::info('User info requested', ['user_id' => $request->user()->id, 'from_remote' => $fromRemote]);
 
         // $fromRemote = true;
         return UserResource::make($request->user())->setToRemote($fromRemote);
