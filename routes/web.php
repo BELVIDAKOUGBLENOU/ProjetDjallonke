@@ -15,9 +15,9 @@ use App\Http\Middleware\SetCommunityContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
 
 // Auth::routes(['register' => false]);
 
@@ -112,6 +112,6 @@ use Illuminate\Support\Facades\Route;
 //     // });
 
 // });
-// Route::redirect('/', '/home');
+Route::redirect('/', '/home');
 
 // Route::get('/api/update', [Controller::class, 'autoUpdate'])->name('update')->middleware(['auth', SetCommunityContext::class, 'role:Super-admin']);
