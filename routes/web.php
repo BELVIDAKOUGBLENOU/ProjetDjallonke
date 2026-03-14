@@ -112,6 +112,7 @@ Route::get('/', function () {
 //     // });
 
 // });
-Route::redirect('/', '/home');
+Route::redirect('/home', '/');
+Route::redirect('/dashboard', '/');
 
 // Route::get('/api/update', [Controller::class, 'autoUpdate'])->name('update')->middleware(['auth', SetCommunityContext::class, 'role:Super-admin']);

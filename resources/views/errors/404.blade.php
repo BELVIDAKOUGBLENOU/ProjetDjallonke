@@ -43,13 +43,7 @@
         </p>
 
         <div class="flex flex-col gap-3">
-            @if (url()->previous() !== url()->current() && url()->previous() !== route('login'))
-                <a href="{{ url()->previous() }}"
-                    class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition font-medium text-sm">
-                    <i class="ti ti-arrow-left"></i>
-                    Retour
-                </a>
-            @endif
+
 
             <a href="{{ route('home') }}"
                 class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition font-medium text-sm shadow-sm shadow-green-200 dark:shadow-none">
